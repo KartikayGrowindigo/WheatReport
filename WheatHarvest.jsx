@@ -573,25 +573,35 @@ function MoistureGauge() {
       () => {
         const section = document.getElementById("journey");
         if (!section) return;
-        gsap.set(el, { autoAlpha: 0, x: 30 });
-        const show = () => gsap.to(el, { autoAlpha: 1, x: 0, duration: 0.5, ease: GSAP_EASE });
-        const hide = () => gsap.to(el, { autoAlpha: 0, x: 30, duration: 0.4, ease: GSAP_EASE });
-        ScrollTrigger.create({
+
+        // onToggle (not onEnter/onLeave) so a fast fling or a jump straight
+        // to a section past Journey still resolves to the correct hidden
+        // state - and onRefresh re-syncs visibility if lazy-loaded images
+        // shift the section's height after the trigger was first measured.
+        const sync = (active) => {
+          gsap.to(el, {
+            autoAlpha: active ? 1 : 0, x: active ? 0 : 30,
+            duration: active ? 0.5 : 0.4, ease: GSAP_EASE, overwrite: true,
+          });
+        };
+
+        const trigger = ScrollTrigger.create({
           trigger: section,
           start: "top top",
           end: "bottom bottom",
-          scrub: 0.4,
-          onEnter: show,
-          onEnterBack: show,
-          onLeave: hide,
-          onLeaveBack: hide,
           onUpdate: (st) => {
-            const level = 0.1 + st.progress * 0.9;
+            const level = Math.min(1, Math.max(0, 0.1 + st.progress * 0.9));
             const h = H * level;
             gsap.set(fill.current, { attr: { y: BOTTOM - h, height: h } });
             if (label.current) label.current.textContent = `${(10 + level * 4).toFixed(1)}%`;
           },
+          onToggle: (st) => sync(st.isActive),
+          onRefresh: (st) => sync(st.isActive),
         });
+
+        // set the correct state immediately (no tween) in case the page
+        // mounts already scrolled into/past the section.
+        gsap.set(el, { autoAlpha: trigger.isActive ? 1 : 0, x: trigger.isActive ? 0 : 30 });
       }
     );
   }, []);
