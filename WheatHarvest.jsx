@@ -60,8 +60,8 @@ import journeyVlm4 from "./src/assets/wheat/docx/journey-05-vlm4-aulakh.jpeg";
 import journeyVlm5 from "./src/assets/wheat/docx/journey-06-vlm5-nurpurbet.jpeg";
 import journeyVlm6 from "./src/assets/wheat/docx/journey-07-vlm6-dhanansu.jpeg";
 import journeyVlm7 from "./src/assets/wheat/docx/journey-08-vlm7-stakeholder-ludhiana.jpeg";
-import journeyVlm8 from "./src/assets/wheat/docx/journey-09-vlm8-dhanansu.jpeg";
-import journeyVlm9 from "./src/assets/wheat/docx/journey-10-vlm9-nurpurbet.jpeg";
+import journeyVlm8 from "./src/assets/wheat/docx/journey-09-vlm8-group-field.jpeg";
+import journeyVlm9 from "./src/assets/wheat/docx/journey-10-vlm9-group-field2.jpg";
 import journeyLowCarbonWheat from "./src/assets/wheat/docx/journey-08-lowcarbon-wheat.jpeg";
 import journeyLowCarbonWheat2 from "./src/assets/wheat/docx/lewp.jpg";
 import journeyThirdPartyAudit from "./src/assets/wheat/docx/journey-09-thirdparty-audit.jpeg";
@@ -2676,7 +2676,11 @@ function EvidenceSection() {
       <div ref={grid} className="grid gap-6 sm:grid-cols-2">
         {ANNEXURES.map(([tag, title, src, caption]) => {
           const srcs = Array.isArray(src) ? src : [src];
-          const captions = Array.isArray(caption) ? caption : [caption];
+          // An array of captions pairs one caption per photo. A single shared
+          // string means the photos describe the same thing - show it once
+          // below the whole gallery instead of repeating it under each photo.
+          const perPhotoCaptions = Array.isArray(caption) ? caption : null;
+          const sharedCaption = perPhotoCaptions ? null : caption;
           return (
             <div key={tag} className="annexure-card">
               <Eyebrow>{tag}</Eyebrow>
@@ -2684,10 +2688,15 @@ function EvidenceSection() {
               <div className={`mt-3 ${srcs.length > 1 ? "grid gap-3 grid-cols-2" : ""}`}>
                 {srcs.map((s, i) => (
                   <CursorFollow key={i} label={tag}>
-                    <PhotoSlot ratio="4 / 3" fit="contain" src={s} alt={title} caption={captions[i] ?? captions[0]} />
+                    <PhotoSlot ratio="4 / 3" fit="contain" src={s} alt={title} caption={perPhotoCaptions?.[i]} />
                   </CursorFollow>
                 ))}
               </div>
+              {sharedCaption && (
+                <figcaption className="wh-data mt-2" style={{ fontSize: 11, color: C.mute, lineHeight: 1.6, fontStyle: "italic" }}>
+                  {sharedCaption}
+                </figcaption>
+              )}
             </div>
           );
         })}
