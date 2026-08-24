@@ -63,6 +63,8 @@ import journeyLowCarbonWheat from "./src/assets/wheat/docx/journey-08-lowcarbon-
 import journeyLowCarbonWheat2 from "./src/assets/wheat/docx/lewp.jpg";
 import journeyThirdPartyAudit from "./src/assets/wheat/docx/journey-09-thirdparty-audit.jpeg";
 import journeyThirdPartyAudit2 from "./src/assets/wheat/docx/itpa.jpg";
+import journeyQuantification1 from "./src/assets/wheat/docx/journey-quant-1.png";
+import journeyQuantification2 from "./src/assets/wheat/docx/journey-quant-2.png";
 import farmerDiarySocioeconomic from "./src/assets/wheat/docx/farmer-diary-socioeconomic.png";
 import annexureVlm from "./src/assets/wheat/docx/annexure-01-vlm.jpeg";
 import annexureZtField from "./src/assets/wheat/docx/annexure-02-zt-field.jpeg";
@@ -555,7 +557,10 @@ function CursorFollow({ children, label, className = "" }) {
 
 /* ----------------------------------------------------------------------------
    3 · SIGNATURE - grain moisture gauge (decorative scroll-position chrome,
-   not a data claim - no figure in the document is attached to it)
+   not a data claim - no figure in the document is attached to it). Scoped to
+   the Programme Journey section only: hidden everywhere else, empty when the
+   section is entered and full by the time the "Quantification and Reporting"
+   step (the section's final step) scrolls into view.
 ---------------------------------------------------------------------------- */
 function MoistureGauge() {
   const fill = useRef(null);
@@ -566,25 +571,25 @@ function MoistureGauge() {
     gsap.matchMedia().add(
       { ok: "(min-width: 1024px) and (prefers-reduced-motion: no-preference)" },
       () => {
-        gsap.fromTo(
-          el,
-          { autoAlpha: 0, x: 30 },
-          {
-            autoAlpha: 1, x: 0, duration: 0.9, ease: GSAP_EASE,
-            scrollTrigger: { trigger: document.body, start: "top+=520 top", toggleActions: "play none none reverse" },
-          }
-        );
+        const section = document.getElementById("journey");
+        if (!section) return;
+        gsap.set(el, { autoAlpha: 0, x: 30 });
+        const show = () => gsap.to(el, { autoAlpha: 1, x: 0, duration: 0.5, ease: GSAP_EASE });
+        const hide = () => gsap.to(el, { autoAlpha: 0, x: 30, duration: 0.4, ease: GSAP_EASE });
         ScrollTrigger.create({
-          trigger: document.body,
+          trigger: section,
           start: "top top",
           end: "bottom bottom",
           scrub: 0.4,
+          onEnter: show,
+          onEnterBack: show,
+          onLeave: hide,
+          onLeaveBack: hide,
           onUpdate: (st) => {
-            const cycle = (Math.sin(st.progress * Math.PI * 6 - Math.PI / 2) + 1) / 2;
-            const level = 0.18 + cycle * 0.62;
+            const level = 0.1 + st.progress * 0.9;
             const h = H * level;
             gsap.set(fill.current, { attr: { y: BOTTOM - h, height: h } });
-            if (label.current) label.current.textContent = `${(10 + cycle * 4).toFixed(1)}%`;
+            if (label.current) label.current.textContent = `${(10 + level * 4).toFixed(1)}%`;
           },
         });
       }
@@ -1703,7 +1708,7 @@ const JOURNEY_STEPS = [
     body: "OnePeterson independently reviewed the field evidence and digital records - geo-tagged boundaries, farmer diaries, practice verification and the procurement trail - testing whether the reductions claimed are attributable to the fields that produced them.",
   },
   {
-    n: "07", title: "Quantification and Reporting",
+    n: "07", title: "Quantification and Reporting", gallery: [journeyQuantification1, journeyQuantification2],
     body: "Grow Indigo quantified emissions on the Cool Farm Platform v3.0 using the square-root sample, then compiled this report. The assessment applied the GHG Protocol framework and IPCC guidelines. Results were reviewed and prepared for Nestlé's sustainability reporting.",
   },
 ];
@@ -1713,6 +1718,7 @@ function JourneySection() {
   const { scrollYProgress: spineProgress } = useScroll({ target: spineRef, offset: ["start 0.7", "end 0.3"] });
   return (
     <Section id="journey" tone="tint">
+      <MoistureGauge />
       <SectionHead
         index="05"
         title="Programme Journey"
@@ -1736,7 +1742,7 @@ function JourneySection() {
           return (
             <motion.div
               key={step.n}
-              className="journey-step grid gap-6 md:grid-cols-5 items-start"
+              className="journey-step grid gap-6 md:grid-cols-5 items-stretch"
               initial={{ opacity: 0, y: 22 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.35 }}
@@ -1766,12 +1772,21 @@ function JourneySection() {
               )}
               {step.gallery && (
                 <div
-                  className={`md:col-span-2 grid gap-2 ${step.gallery.length <= 2 ? "grid-cols-2" : "grid-cols-3"}`}
-                  style={{ order: reverse ? 1 : 2 }}
+                  className={`md:col-span-2 grid gap-2 h-full ${step.gallery.length <= 2 ? "grid-cols-2" : "grid-cols-3"}`}
+                  style={{ order: reverse ? 1 : 2, gridAutoRows: "1fr" }}
                 >
                   {step.gallery.map((src, gi) => (
                     <CursorFollow key={gi} label={step.title}>
-                      <PhotoSlot ratio="4 / 3" fit="contain" src={src} alt={step.title} />
+                      <div
+                        className="relative overflow-hidden rounded-lg h-full"
+                        style={{ background: C.paperDim, border: `1px solid ${C.line}`, minHeight: 140 }}
+                      >
+                        <img
+                          src={src}
+                          alt={step.title}
+                          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                        />
+                      </div>
                     </CursorFollow>
                   ))}
                 </div>
@@ -2070,7 +2085,7 @@ const NITROGEN_WATERFALL = buildWaterfall([
 
 const WATER_WATERFALL = buildWaterfall([
   { name: "Baseline", type: "total", value: 1410, fill: C.mute, note: "Grow Indigo baseline irrigation water use, m³ per ha" },
-  { name: "Saving", type: "delta", value: -649, fill: C.water, note: "649 m³/ha lower - a ~46% reduction against baseline" },
+  { name: "Saving", type: "delta", value: -649, fill: C.waterDeep, note: "649 m³/ha lower - a ~46% reduction against baseline" },
   { name: "Project", type: "total", value: 761, fill: C.water, note: "Irrigation water use recorded under the programme" },
 ]);
 
@@ -2623,8 +2638,8 @@ function SourcingSection() {
    20 · SECTION 13 - FIELD EVIDENCE
 ---------------------------------------------------------------------------- */
 const ANNEXURES = [
-  ["Annexure 1", "Village-level meetings with farmers", annexureVlm, "Farmers attending a VLM with the field team - six VLMs were held across the project period."],
-  ["Annexure 2", "Zero/Reduced Tillage field", annexureZtField, "Uniform crop rows and retained surface residue indicate field-level adoption of Zero/Reduced Tillage practices."],
+  ["Annexure 1", "Zero/Reduced Tillage field", annexureZtField, "Uniform crop rows and retained surface residue indicate field-level adoption of Zero/Reduced Tillage practices."],
+  ["Annexure 2", "Village-level meetings with farmers", annexureVlm, "Farmers attending a VLM with the field team - six VLMs were held across the project period."],
   ["Annexure 3", "Farmer diary", farmerDiarySocioeconomic, "Socio-economic profile plus a dated crop name, season, year and villages names are mentioned."],
   ["Annexure 4", "Weekly WhatsApp messages sent to farmers", annexureWhatsapp, "Weekly WhatsApp messages shared vernacular videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
   ["Annexure 5", "Harvest in Action", annexureHarvest, "Geotagged documentation of mechanised wheat harvesting at a programme field prior to programme procurement and traceability activities in Sherpur Kalan, Punjab."],
@@ -2796,7 +2811,6 @@ export default function WheatHarvestReport() {
       <GlobalStyle />
       <div className="wh-grain no-print" aria-hidden="true" />
       <TopBar />
-      <MoistureGauge />
 
       <main>
         <Hero />
