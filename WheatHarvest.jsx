@@ -65,11 +65,14 @@ import journeyThirdPartyAudit from "./src/assets/wheat/docx/journey-09-thirdpart
 import journeyThirdPartyAudit2 from "./src/assets/wheat/docx/itpa.jpg";
 import journeyQuantification1 from "./src/assets/wheat/docx/journey-quant-1.png";
 import journeyQuantification2 from "./src/assets/wheat/docx/journey-quant-2.png";
-import farmerDiarySocioeconomic from "./src/assets/wheat/docx/farmer-diary-socioeconomic.png";
 import annexureVlm from "./src/assets/wheat/docx/annexure-01-vlm.jpeg";
 import annexureZtField from "./src/assets/wheat/docx/annexure-02-zt-field.jpeg";
+import annexureFarmerSocioeconomic from "./src/assets/wheat/docx/annexure-farmer-socioeconomic.png";
+import annexureLandPrepSowing from "./src/assets/wheat/docx/annexure-land-prep-sowing.png";
 import annexureWhatsapp from "./src/assets/wheat/docx/annexure-04-whatsapp.jpeg";
+import annexureWhatsapp2 from "./src/assets/wheat/docx/annexure-whatsapp-2.png";
 import annexureHarvest from "./src/assets/wheat/docx/annexure-05-harvest.jpeg";
+import annexureHarvest2 from "./src/assets/wheat/docx/annexure-harvest-2.jpg";
 import annexureGrains from "./src/assets/wheat/docx/annexure-06-grains.jpeg";
 import annexureReceipt from "./src/assets/wheat/docx/annexure-07-receipt.jpeg";
 import annexureAudit from "./src/assets/wheat/docx/annexure-08-audit.jpeg";
@@ -2650,9 +2653,9 @@ function SourcingSection() {
 const ANNEXURES = [
   ["Annexure 1", "Zero/Reduced Tillage field", annexureZtField, "Uniform crop rows and retained surface residue indicate field-level adoption of Zero/Reduced Tillage practices."],
   ["Annexure 2", "Village-level meetings with farmers", annexureVlm, "Farmers attending a VLM with the field team - six VLMs were held across the project period."],
-  ["Annexure 3", "Farmer diary", farmerDiarySocioeconomic, "Socio-economic profile plus a dated crop name, season, year and villages names are mentioned."],
-  ["Annexure 4", "Weekly WhatsApp messages sent to farmers", annexureWhatsapp, "Weekly WhatsApp messages shared vernacular videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
-  ["Annexure 5", "Harvest in Action", annexureHarvest, "Geotagged documentation of mechanised wheat harvesting at a programme field prior to programme procurement and traceability activities in Sherpur Kalan, Punjab."],
+  ["Annexure 3", "Farmer diary", [annexureFarmerSocioeconomic, annexureLandPrepSowing], ["Farmer socio-economic profile capturing Kissan Advisor, farmer and field IDs, registered regenerative acreage, address and crop/season details.", "Land preparation and sowing register recording date of work, field ID, regenerative acres, sowing method, equipment used, time taken, fuel consumption and cost per acre."]],
+  ["Annexure 4", "Weekly WhatsApp messages sent to farmers", [annexureWhatsapp, annexureWhatsapp2], "Weekly WhatsApp messages shared vernacular videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
+  ["Annexure 5", "Harvest in Action", [annexureHarvest, annexureHarvest2], "Geotagged documentation of mechanised wheat harvesting at a programme field prior to programme procurement and traceability activities in Sherpur Kalan, Punjab."],
   ["Annexure 6", "Grains ready to be transported", annexureGrains, "Harvested low-carbon programme wheat being weighed and packed in separate, clearly identifiable white bags at Kot kapura, Punjab."],
   ["Annexure 7", "Procurement Receipt", annexureReceipt, "Establishment of Procurement between Farmers and Miller: \"J Form\" issued by the Market Committee. (Seller's personal details redacted.)"],
   ["Annexure 8", "Independent third-party audit", annexureAudit, "Third Party auditor in field with the Grow Indigo team and participating farmers."],
@@ -2668,17 +2671,23 @@ function EvidenceSection() {
         lede="The annexures below document field-level evidence, monitoring data and operational records collected throughout the project period - each one geo-tagged and dated at the point of capture."
       />
       <div ref={grid} className="grid gap-6 sm:grid-cols-2">
-        {ANNEXURES.map(([tag, title, src, caption]) => (
-          <div key={tag} className="annexure-card">
-            <Eyebrow>{tag}</Eyebrow>
-            <h4 className="wh-display mt-1 text-lg" style={{ color: C.ink, fontWeight: 700 }}>{title}</h4>
-            <div className="mt-3">
-              <CursorFollow label={tag}>
-                <PhotoSlot ratio="4 / 3" fit="contain" src={src} alt={title} caption={caption} />
-              </CursorFollow>
+        {ANNEXURES.map(([tag, title, src, caption]) => {
+          const srcs = Array.isArray(src) ? src : [src];
+          const captions = Array.isArray(caption) ? caption : [caption];
+          return (
+            <div key={tag} className="annexure-card">
+              <Eyebrow>{tag}</Eyebrow>
+              <h4 className="wh-display mt-1 text-lg" style={{ color: C.ink, fontWeight: 700 }}>{title}</h4>
+              <div className={`mt-3 ${srcs.length > 1 ? "grid gap-3 grid-cols-2" : ""}`}>
+                {srcs.map((s, i) => (
+                  <CursorFollow key={i} label={tag}>
+                    <PhotoSlot ratio="4 / 3" fit="contain" src={s} alt={title} caption={captions[i] ?? captions[0]} />
+                  </CursorFollow>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Section>
   );
