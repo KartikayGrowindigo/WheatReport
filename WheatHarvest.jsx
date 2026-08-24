@@ -59,6 +59,9 @@ import journeyVlm3 from "./src/assets/wheat/docx/journey-04-vlm3-bisafarm.jpeg";
 import journeyVlm4 from "./src/assets/wheat/docx/journey-05-vlm4-aulakh.jpeg";
 import journeyVlm5 from "./src/assets/wheat/docx/journey-06-vlm5-nurpurbet.jpeg";
 import journeyVlm6 from "./src/assets/wheat/docx/journey-07-vlm6-dhanansu.jpeg";
+import journeyVlm7 from "./src/assets/wheat/docx/journey-08-vlm7-stakeholder-ludhiana.jpeg";
+import journeyVlm8 from "./src/assets/wheat/docx/journey-09-vlm8-dhanansu.jpeg";
+import journeyVlm9 from "./src/assets/wheat/docx/journey-10-vlm9-nurpurbet.jpeg";
 import journeyLowCarbonWheat from "./src/assets/wheat/docx/journey-08-lowcarbon-wheat.jpeg";
 import journeyLowCarbonWheat2 from "./src/assets/wheat/docx/lewp.jpg";
 import journeyThirdPartyAudit from "./src/assets/wheat/docx/journey-09-thirdparty-audit.jpeg";
@@ -1701,7 +1704,7 @@ const JOURNEY_STEPS = [
     body: "The programme began with alignment on scope, geography and implementation requirements. Field identification and deployment of the programme team followed, establishing the operational base for farmer engagement and seasonal monitoring.",
   },
   {
-    n: "02", title: "Village-Level Meetings", gallery: [journeyVlm1, journeyVlm2, journeyVlm3, journeyVlm4, journeyVlm5, journeyVlm6],
+    n: "02", title: "Village-Level Meetings", gallery: [journeyVlm1, journeyVlm2, journeyVlm3, journeyVlm4, journeyVlm5, journeyVlm6, journeyVlm7, journeyVlm8, journeyVlm9],
     body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero Tillage and Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping, responsible labour practices and programme participation requirements. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements. The meetings also reinforced awareness of low-carbon wheat production, sustainable procurement, the wider ClearHarvest sustainability programme and the Carbon Credit initiative, supporting practical adoption of improved practices at field level.",
   },
   {
@@ -1792,7 +1795,7 @@ function JourneySection() {
                     <CursorFollow key={gi} label={step.title}>
                       <div
                         className="relative overflow-hidden rounded-lg h-full"
-                        style={{ background: C.paperDim, border: `1px solid ${C.line}`, minHeight: 140 }}
+                        style={{ background: C.paperDim, border: `1px solid ${C.line}`, minHeight: 100 }}
                       >
                         <img
                           src={src}
