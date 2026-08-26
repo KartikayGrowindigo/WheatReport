@@ -51,8 +51,8 @@ import journeyQualityTest2 from "./src/assets/wheat/docx/journey-qtn-2.jpg";
 import journeyFarmerDiary1 from "./src/assets/wheat/docx/journey-farmer-diary-1.png";
 import journeyFarmerDiary2 from "./src/assets/wheat/docx/journey-farmer-diary-2.png";
 import journeyFarmerDiary3 from "./src/assets/wheat/docx/journey-farmer-diary-3.png";
-import journeyKickoff from "./src/assets/wheat/docx/pko.jpg";
-import journeyKickoff2 from "./src/assets/wheat/docx/pko2.jpg";
+import journeyKickoff from "./src/assets/wheat/docx/pkow.jpeg";
+import journeyKickoff2 from "./src/assets/wheat/docx/pkow2.jpg";
 import journeyVlm1 from "./src/assets/wheat/docx/journey-02-vlm1-khasikalan.jpg";
 import journeyVlm2 from "./src/assets/wheat/docx/journey-03-vlm2-kotkapura.jpeg";
 import journeyVlm3 from "./src/assets/wheat/docx/journey-04-vlm3-bisafarm.jpeg";
@@ -115,6 +115,16 @@ const FONT_QUOTE = "'Fraunces', Georgia, 'Times New Roman', serif";
 const EASE = [0.22, 0.61, 0.36, 1];
 const GSAP_EASE = "power3.out";
 
+/** PDF export mode - set by the Playwright export script via "?pdf=1" (or
+ *  set manually in the URL for a quick preview). Anything that only exists
+ *  for the interactive, on-screen experience and has no printed equivalent
+ *  (the marquee ticker, the WebGL field map) is skipped entirely instead of
+ *  merely hidden, and anything that is normally revealed by a click or a
+ *  hover (the PMU/RBM/TBM accordion, a theme tile's highlight stat) starts
+ *  already open/revealed so nothing behind an interaction is lost. */
+const PDF_EXPORT =
+  typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pdf") === "1";
+
 function GlobalStyle() {
   return (
     <style>{`
@@ -135,6 +145,8 @@ function GlobalStyle() {
       .wh-grain { position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .035;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
+      .print-only { display: none !important; }
+
       /* Print / "Download PDF" - the report's scroll-triggered reveals leave
          anything below the fold at its hidden initial state (opacity 0,
          translated, pinned) since print never actually scrolls the page.
@@ -142,17 +154,86 @@ function GlobalStyle() {
          state and drop the fixed/decorative chrome that doesn't belong on
          a printed page. */
       @media print {
+        @page { size: A4 portrait; margin: 8mm; }
+        html, body { margin: 0 !important; background: ${C.paper} !important; }
         .no-print { display: none !important; }
+        .screen-only { display: none !important; }
+        .print-only { display: block !important; }
         .wh-root, .wh-root * {
           opacity: 1 !important; transform: none !important; filter: none !important;
           visibility: visible !important; animation: none !important; clip-path: none !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
         .wh-root { overflow: visible !important; }
-        .wh-root section { break-inside: auto; }
+        .wh-root section { break-inside: auto; padding: 9mm 5mm !important; }
+        .wh-root .section-head { margin-bottom: 7mm !important; break-inside: avoid; }
         .wh-root h1, .wh-root h2, .wh-root h3, .wh-root h4 { break-after: avoid; }
-        .wh-root .annexure-card, .wh-root .voice-card, .wh-root .returns-card, .wh-root img, .wh-root figure {
-          break-inside: avoid;
+        /* Atomic content - a single card, photo, paragraph or table row -
+           should never straddle a page break. Each of these either prints
+           whole on the page it starts, or moves whole onto the next one;
+           the section around it (break-inside: auto, above) is what's
+           allowed to actually split across pages. A block taller than one
+           full page can't honour this and simply breaks anyway - expected,
+           and harmless. */
+        .wh-root .annexure-card, .wh-root .voice-card, .wh-root .returns-card,
+        .wh-root .theme-tile, .wh-root .pillar-card, .wh-root .vertical-card,
+        .wh-root .monitor-shot, .wh-root .journey-step, .wh-root .role-row,
+        .wh-root .audit-row, .wh-root .stat-card, .wh-root .headline-card,
+        .wh-root .chart-frame, .wh-root .impact-card,
+        .wh-root .workflow-stepper, .wh-root .activity-timeline,
+        .wh-root .timeline-visual-group,
+        .wh-root img, .wh-root video, .wh-root figure {
+          break-inside: avoid-page;
         }
+        .wh-root p, .wh-root li, .wh-root blockquote, .wh-root figcaption {
+          break-inside: avoid; orphans: 3; widows: 3;
+        }
+        .wh-root .role-accordion { break-inside: auto !important; overflow: visible !important; }
+        .wh-root .chart-print-notes { margin-top: 12px; padding-top: 10px; border-top: 1px solid ${C.line}; }
+        .wh-root .chart-print-notes li { font-size: 10.5px; line-height: 1.5; color: ${C.mute}; }
+        .wh-root .chart-print-notes li + li { margin-top: 5px; }
+        .wh-root #fields { padding-top: 5mm !important; padding-bottom: 5mm !important; }
+        .wh-root #fields .section-head { margin-bottom: 4mm !important; }
+        .wh-root #themes .themes-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important;
+        }
+        .wh-root #themes .theme-tile { padding: 14px !important; }
+        .wh-root #themes .theme-tile h4 { font-size: 13px !important; margin-top: 7px !important; }
+        .wh-root #themes .theme-tile p,
+        .wh-root #themes .theme-tile li { font-size: 9.25px !important; line-height: 1.34 !important; }
+        .wh-root #themes .theme-tile .mt-4 { margin-top: 8px !important; }
+        .wh-root #themes .theme-tile .space-y-3 > * + * { margin-top: 5px !important; }
+        .wh-root #themes .theme-tile .space-y-2 > * + * { margin-top: 3px !important; }
+        .wh-root #audited .audit-charts-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important;
+        }
+        .wh-root #audited .audit-water-wrapper { grid-column: auto !important; width: auto !important; padding: 0 !important; }
+        .wh-root #audited .chart-frame { padding: 14px !important; }
+        .wh-root #audited .chart-plot { height: 240px !important; }
+        .wh-root #audited .chart-print-notes li { font-size: 8.5px !important; line-height: 1.32 !important; }
+        .wh-root #farmerimpact .impact-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 14px !important;
+        }
+        .wh-root #farmerimpact .section-head { margin-bottom: 4mm !important; }
+        .wh-root #farmerimpact .impact-card { padding: 14px !important; }
+        .wh-root #farmerimpact .impact-card h4 { margin-bottom: 10px !important; }
+        .wh-root #farmerimpact .impact-card .space-y-5 > * + * { margin-top: 8px !important; }
+        .wh-root #farmerimpact .impact-card p { font-size: 9.75px !important; line-height: 1.34 !important; }
+        .wh-root #farmerimpact .impact-card p + * { break-before: auto; }
+        .wh-root #evidence .evidence-grid { gap: 12px !important; }
+        .wh-root #evidence .annexure-card h4 { font-size: 14px !important; }
+        .wh-root #evidence .annexure-card figcaption { font-size: 9.5px !important; line-height: 1.45 !important; }
+        /* A section heading/eyebrow should never print as the last line on
+           a page with its body pushed to the next one. Most sub-headings in
+           this report are a styled Eyebrow div, not an h1-h4. */
+        .wh-root h1 + *, .wh-root h2 + *, .wh-root h3 + *, .wh-root h4 + *, .wh-root .wh-eyebrow + * {
+          break-before: avoid;
+        }
+        .wh-root .wh-eyebrow { break-after: avoid; }
+        /* The index/rule + title + lede that opens every section reads as
+           one unit - never split the section number onto one page and its
+           title onto the next. */
+        .wh-root .section-head { break-inside: avoid; break-after: avoid; }
         /* Hover-only expansion (line-clamp) can never trigger in print - show
            the full paragraph instead of the truncated preview. */
         .wh-root [class*="line-clamp"] {
@@ -162,8 +243,14 @@ function GlobalStyle() {
            height and vertically center/bottom-align their content for the
            on-screen scroll experience - on a print page that reads as a big
            empty run before the title. Let them size to their content instead. */
-        .wh-root .wh-hero, .wh-root .wh-pin-block {
+        .wh-root .wh-hero {
+          min-height: 281mm !important; height: 281mm !important; display: flex !important;
+          break-after: page; box-sizing: border-box;
+        }
+        .wh-root .wh-hero .hero-content { padding-top: 26mm !important; padding-bottom: 20mm !important; }
+        .wh-root .wh-pin-block {
           min-height: 0 !important; height: auto !important; display: block !important;
+          padding: 14mm 10mm !important; break-inside: avoid-page;
         }
       }
     `}</style>
@@ -268,6 +355,11 @@ function Counter({ value, decimals = 0, duration = 1.8, className = "", style, p
   const tweenRef = useRef(null);
   const scope = useGsapContext((self, node) => {
     if (!node) return;
+    const finalValue = decimals ? value.toFixed(decimals) : Math.round(value).toLocaleString("en-IN");
+    if (PDF_EXPORT) {
+      node.textContent = `${prefix}${finalValue}${suffix}`;
+      return;
+    }
     const obj = { v: 0 };
     const fmt = (n) =>
       decimals ? n.toFixed(decimals) : Math.round(n).toLocaleString("en-IN");
@@ -346,7 +438,7 @@ function useBatchReveal(selector, opts = {}) {
 function Eyebrow({ children, color = C.husk, className = "", big = false }) {
   return (
     <div
-      className={`wh-data uppercase ${big ? "text-base" : "text-xs"} ${className}`}
+      className={`wh-eyebrow wh-data uppercase ${big ? "text-base" : "text-xs"} ${className}`}
       style={{ color, letterSpacing: big ? "0.1em" : "0.18em", fontWeight: big ? 700 : 600 }}
     >
       {children}
@@ -398,7 +490,7 @@ function SectionHead({ index, title, lede, tone = "light" }) {
   const body = tone === "dark" ? "rgba(255,255,255,.72)" : C.mute;
   const rule = tone === "dark" ? "rgba(255,255,255,.18)" : C.line;
   return (
-    <div className="mb-10 md:mb-14">
+    <div className="section-head mb-10 md:mb-14">
       <Stagger stagger={0.1}>
         <motion.div variants={vFadeIn} className="flex items-baseline gap-4">
           <span className="wh-data text-sm" style={{ color: C.husk, fontWeight: 600 }}>{index}</span>
@@ -750,12 +842,12 @@ function TopBar() {
    5 · HERO
    Title, lede and meta are the document's own cover page.
 ---------------------------------------------------------------------------- */
-const HERO_LINES = [["Low", "emission"], ["wheat", "offtake"]];
+const HERO_LINES = [["Low-emission"], ["wheat", "offtake"]];
 const HERO_META = [
-  ["Reporting period", "Rabi Season 2025"],
+  ["Reporting period", "Rabi Crop Season 2025-26"],
   ["Implementation partner", "Grow Indigo"],
   ["Geography", "Ludhiana & Faridkot, Punjab"],
-  ["Quantification", "Cool farm tool.v3"],
+  ["Quantification", "Cool Farm Platform v3.0"],
   ["Independent audit", "One Peterson"],
 ];
 
@@ -842,7 +934,6 @@ function Hero() {
                   style={{ display: "inline-block", marginRight: wi < line.length - 1 ? "0.28em" : 0 }}
                 >
                   {w}
-                  {li === HERO_LINES.length - 1 && wi === line.length - 1 ? <span style={{ color: C.husk }}>.</span> : null}
                 </span>
               ))}
             </span>
@@ -893,7 +984,7 @@ const TICKER_ITEMS = [
   "~15% GHG reduction against Nestlé baseline",
   "~46% lower irrigation water use against Grow Indigo's baseline",
   "7,261 MT of low-emission wheat procured",
-  "Rabi Season 2025",
+  "Rabi Crop Season 2025-26",
 ];
 
 function Ticker() {
@@ -939,12 +1030,12 @@ function RollingNumber({ value, duration = 1.4 }) {
   const mv = useMotionValue(0);
   const spring = useSpring(mv, { duration: duration * 1000, bounce: 0 });
   const [display, setDisplay] = useState(
-    (0).toLocaleString("en-IN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    (PDF_EXPORT ? target : 0).toLocaleString("en-IN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
   );
 
   useEffect(() => {
     if (!m) return;
-    if (inView) mv.set(reduceMotion ? target : target);
+    if (PDF_EXPORT || inView) mv.set(target);
   }, [inView, target, m, reduceMotion]);
 
   useEffect(() => {
@@ -1058,7 +1149,7 @@ function StatRow({ stats }) {
       {stats.map(([value, label, sub]) => (
         <div
           key={label}
-          className="p-6 rounded-lg text-center transition-transform duration-300 ease-out hover:-translate-y-1"
+          className="stat-card p-6 rounded-lg text-center transition-transform duration-300 ease-out hover:-translate-y-1"
           style={{ background: "#fff", border: `1px solid ${C.line}`, boxShadow: "0 1px 2px rgba(10,31,22,.04)" }}
         >
           <IconBadge icon={iconForStatLabel(label)} color={C.field} />
@@ -1093,7 +1184,7 @@ function SeasonSection() {
       <SectionHead
         index="01"
         title="What the Season Delivered?"
-        lede="The Low Emission Wheat Offtake promoted sustainable practices like Zero/Reduced Tillage (ZT/RT) as the central practice for wheat sown after the preceding crop. The programme recorded farmer registration, field-level agronomic data including optimised fertilizer uses, crop residue management (CRM) and irrigation water use followed by an independent third-party audit."
+        lede="The Low-emission Wheat Offtake promoted sustainable practices like Zero/Reduced Tillage (ZT/RT) as the central practice for wheat sown after the preceding crop. The programme recorded farmer registration, field-level agronomic data including optimised fertilizer uses, crop residue management (CRM) and irrigation water use followed by an independent third-party audit."
       />
 
       <Reveal>
@@ -1142,7 +1233,7 @@ function SeasonSection() {
             transparent field records, independent assurance and traceable procurement.
           </p>
           <div className="wh-data mt-5" style={{ fontSize: 13, color: "rgba(255,255,255,.65)", letterSpacing: ".02em" }}>
-            273 farmers enrolled · 2,390 hectares covered · 17 sample farmers audited · 7,261 MT of wheat procured
+            273 farmers enrolled · 2,390 hectares covered · 7,261 MT of wheat procured
           </div>
         </div>
       </Reveal>
@@ -1159,18 +1250,19 @@ function FieldsSection() {
       <SectionHead
         index="02"
         title="Every Field on the Map"
-        lede="The programme covered registered wheat farms in Punjab. Farmer identities, field boundaries and agronomic information were digitally recorded to support field-level monitoring and traceability. Field-level records were organised across four processors: Gillco Agro, Golden Wheat & Allied Mills, Kohinoor Agro Foods and Ludhiana Flour Mills. The final map shows the confirmed programme fields and distinguishes fields where practice-level data are available."
+        lede="The programme covered registered wheat farms in Punjab. Farmer identities, field boundaries and agronomic information were digitally recorded to support field-level monitoring and traceability. Field-level records were organised across four processors: Gillco Agro, Golden Wheat & Allied Mills, Kohinoor Agro Foods and Ludhiana Flour Mills."
       />
       <Reveal delay={0.15}>
-        <Eyebrow big>Explore every enrolled field</Eyebrow>
         <p className="mt-4" style={{ fontSize: 16, lineHeight: 1.75, color: C.mute }}>
           Drill from India down to Punjab, the project districts and an individual village to see every mapped
           farmer field, coloured by procuring miller. Hover a field for its ID; click to pin its full record in
           the panel.
         </p>
-        <div className="mt-6">
-          <WheatFieldsMapBlock />
-        </div>
+        {!PDF_EXPORT && (
+          <div className="mt-6">
+            <WheatFieldsMapBlock />
+          </div>
+        )}
       </Reveal>
     </Section>
   );
@@ -1201,7 +1293,6 @@ const THEME_3_BULLETS = [
   "Field visits by Kisan Advisors from sowing to harvest",
   "several village-level meetings (VLMs) with live demonstrations",
   "Vernacular learning videos on Grow Indigo's YouTube channel and weekly WhatsApp messages",
-  "A combined field, group and digital handholding ecosystem",
 ];
 
 const ICON_SOIL = (
@@ -1222,7 +1313,7 @@ const THEMES = [
     n: "Theme 01", category: "Soil", title: "Zero/Reduced Tillage", icon: ICON_SOIL, color: C.field,
     stat: "Zero/Reduced Tillage across 2,390 hectares",
     paragraphs: [
-      "Sustainable practices like Zero/Reduced tillage were the main establishment practice promoted under the wheat programme. It enabled wheat to be sown with in-situ incorporation of paddy residue, avoiding the conventional sequence of repeated land preparation, and provided farmers with an alternative to open-field burning.",
+      "Sustainable practices like Zero/Reduced tillage were the main establishment practice promoted under the wheat programme. It enabled wheat to be sown with in-situ management of paddy residue, avoiding the conventional sequence of repeated land preparation and providing farmers with an alternative to open-field residue burning.",
     ],
     bullets: THEME_1_BULLETS,
   },
@@ -1230,8 +1321,8 @@ const THEMES = [
     n: "Theme 02", category: "Residue", title: "Crop Residue Management", icon: ICON_NO_BURN, color: C.leaf,
     stat: "Zero open-field burning · residue incorporated or baled for third-party use",
     paragraphs: [
-      "The Low Emission Wheat Offtake promoted no open-field burning of crop residue as a key principle of responsible residue management. Farmers were encouraged to manage wheat residue through appropriate alternatives such as incorporation in the soil or baling and sending it to a third party.",
-      "Sustainable practices such as Zero/Reduced Tillage provided farmers with a practical pathway to establish wheat through in-situ crop residue management, avoiding the need for open-field burning before sowing.",
+      "The Low-emission Wheat Offtake promoted no open-field burning of crop residue as a key principle of responsible residue management. Farmers were encouraged to manage wheat residue through appropriate alternatives such as incorporation in the soil or baling and sending it to a third party.",
+      "Sustainable practices such as Zero/Reduced Tillage provided farmers with a practical pathway to establish wheat through crop residue management, avoiding the need for open-field burning before sowing.",
     ],
     bullets: THEME_2_BULLETS,
   },
@@ -1240,7 +1331,15 @@ const THEMES = [
     stat: "Several Village-Level Meetings across the season",
     paragraphs: [
       "Kisan Advisors (KAs) conducted regular field visits throughout the wheat season, from field establishment to harvest, enabling one-on-one farmer support, field-level troubleshooting and verification of zero/reduced tillage practices, fertiliser application, crop protection and residue management.",
-      "Grow Indigo's digital learning platform on YouTube (@growindigoindia) featured simple, vernacular videos on regenerative agriculture, water-saving methods, soil health and climate-smart practices, giving farmers continuous learning support.",
+      <>
+        Grow Indigo's digital learning platform on{" "}
+        <a href="https://www.youtube.com/@growindigoindia" target="_blank" rel="noopener noreferrer" style={{ color: C.husk, textDecoration: "underline" }}>
+          YouTube (@growindigoindia)
+        </a>{" "}
+        featured simple, vernacular videos on regenerative agriculture, water-saving methods, soil health and
+        climate-smart practices, complemented by weekly WhatsApp messages carrying similar vernacular videos and
+        visual infographics, giving farmers continuous learning support.
+      </>,
     ],
     bullets: THEME_3_BULLETS,
   },
@@ -1251,7 +1350,9 @@ const THEMES = [
  *  it. Hovering lifts the card, pulses its icon and reveals one extra
  *  line - the highlight stat - as the small "there's more here" payoff. */
 function ThemeTile({ t }) {
-  const [hover, setHover] = useState(false);
+  // PDF export: the highlight stat is otherwise hover-only content, and
+  // nothing in a printed page can hover - show it from the start.
+  const [hover, setHover] = useState(PDF_EXPORT);
   return (
     <motion.div
       className="theme-tile p-6 rounded-lg h-full"
@@ -1316,8 +1417,8 @@ function ThemesSection() {
   const grid = useBatchReveal(".theme-tile", { stagger: 0.08 });
   return (
     <Section id="themes" tone="tint">
-      <SectionHead index="03" title="The Three Programme Themes" />
-      <div ref={grid} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
+      <SectionHead index="03" title="The three programme themes" />
+      <div ref={grid} className="themes-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
         {THEMES.map((t) => (
           <ThemeTile key={t.n} t={t} />
         ))}
@@ -1337,7 +1438,7 @@ const GOVERNANCE_TABLE = [
   ]],
   ["RBM (Regional Business Manager) / Agronomist", [
     "Led on-ground implementation with the TBM and Kisan Advisors",
-    "Technical guidance on Zero/Reduced tillage machinery",
+    "Technical guidance on Zero/Reduced tillage",
     "Farmer training on establishment method and record-keeping",
     "Quality assurance of field data and practice verification",
   ]],
@@ -1350,7 +1451,7 @@ const GOVERNANCE_TABLE = [
     "Single point of contact for farmers",
     "Farmer engagement and mobilisation across project villages",
     "Field geofencing in the ClearHarvest application",
-    "Field visits and Zero/Reduced tillage machinery demonstration",
+    "Field visits and built awareness between farmers on Zero/Reduced tillage",
   ]],
   ["Scientists", [
     "Quality checks on field mapping and monitoring of field activities",
@@ -1435,16 +1536,18 @@ function OrgChart() {
 /** Accordion of full role responsibilities - one open at a time, click to
  *  expand - instead of a permanently-open table. */
 function RoleAccordion() {
-  const [open, setOpen] = useState(0);
+  // PDF export: every role's responsibilities should already be open,
+  // instead of only the first one - there's no click to reveal the rest.
+  const [open, setOpen] = useState(PDF_EXPORT ? "all" : 0);
   return (
-    <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${C.line}`, background: "#fff" }}>
+    <div className="role-accordion rounded-lg overflow-hidden" style={{ border: `1px solid ${C.line}`, background: "#fff" }}>
       <div className="px-6 py-4" style={{ background: C.field }}>
         <Eyebrow color="rgba(255,255,255,.7)" big>Functional responsibility mapping</Eyebrow>
       </div>
       {GOVERNANCE_TABLE.map(([role, duties], i) => {
-        const isOpen = open === i;
+        const isOpen = open === "all" || open === i;
         return (
-          <div key={role} style={{ borderTop: i ? `1px solid ${C.line}` : "none" }}>
+          <div key={role} className="role-row" style={{ borderTop: i ? `1px solid ${C.line}` : "none" }}>
             <motion.button
               onClick={() => setOpen(isOpen ? -1 : i)}
               className="w-full flex items-center gap-4 px-6 py-4 text-left"
@@ -1565,7 +1668,7 @@ function WorkflowStepper() {
   const grid = useBatchReveal(".wf-node", { stagger: 0.06 });
   const step = (i) => <WFCard n={i + 1} icon={WF_ICONS[i]} title={WORKFLOW_WHEAT[i][0]} sub={WORKFLOW_WHEAT[i][1]} />;
   return (
-    <div className="rounded-lg p-6 md:p-8" style={{ background: "#fff", border: `1px solid ${C.line}` }}>
+    <div className="workflow-stepper rounded-lg p-6 md:p-8" style={{ background: "#fff", border: `1px solid ${C.line}` }}>
       <div className="text-center pb-5" style={{ borderBottom: `2px solid ${C.field}` }}>
         <div className="wh-display" style={{ fontSize: 16, fontWeight: 800, color: C.ink, letterSpacing: ".01em" }}>
           CLEAN WHEAT RABI 2025–26 PROGRAM
@@ -1643,7 +1746,7 @@ function GovernanceSection() {
           <div ref={grid} className="grid gap-4 grid-cols-2 sm:grid-cols-5 mt-6">
             {[monitoringApp1, monitoringApp2, monitoringApp3, monitoringApp4, monitoringApp5].map((src, i) => (
               <div key={i} className="monitor-shot">
-                <PhotoSlot ratio="9 / 16" src={src} alt="Farmer onboarding, field-level data collection & supply chain audit trail" />
+                <PhotoSlot ratio="9 / 16" fit="contain" src={src} alt="Farmer onboarding, field-level data collection & supply chain audit trail" />
               </div>
             ))}
           </div>
@@ -1712,7 +1815,7 @@ const JOURNEY_STEPS = [
     body: "Kisan Advisors supported farmers in maintaining agronomic and economic records. Farmer diaries captured field operations, input use and other information required for programme monitoring and quantification.",
   },
   {
-    n: "04", title: "Quality Test Conducted by Nestlé", gallery: [journeyQualityTest1, journeyQualityTest2],
+    n: "04", title: "Quality test conducted by Nestlé", gallery: [journeyQualityTest1, journeyQualityTest2],
     body: "Prior to harvest, the Nestlé team collected representative wheat samples directly from programme fields and conducted pre-harvest quality and food-safety testing for pesticide residues, aflatoxins and other specified contaminants to assess compliance with applicable quality requirements.",
   },
   {
@@ -1836,8 +1939,12 @@ function VoiceCard({ v, index }) {
         {v.src ? (
           <video
             src={v.src}
-            controls
+            controls={!PDF_EXPORT}
             playsInline
+            // PDF export: the export script seeks each video to a
+            // representative frame and prints that still - the native
+            // play/scrub/mute chrome has no purpose on a printed page and
+            // would otherwise be baked into the page as dead controls.
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (
@@ -1885,7 +1992,7 @@ function VoicesSection() {
 const RETURNS_GRID = [
   ["01", "More efficient wheat establishment", "Zero/Reduced tillage machinery enabled direct sowing through retained residue, reducing conventional preparatory operations."],
   ["02", "Responsible residue and soil management", "Residue retention provided an alternative to open-field burning, while avoiding repeated ploughing reduced soil disturbance."],
-  ["03", "More efficient nitrogen application", "Recorded nitrogen use declined from 187 to 123 kg N/ha, a calculated reduction of 34% against the nestle baseline."],
+  ["03", "More efficient nitrogen application", "Recorded nitrogen use declined from 187 to 123 kg N/ha, a calculated reduction of 34% against the Nestle baseline."],
   ["04", "Lower modelled emission intensity", "The assessment recorded an average modelled emission reduction of 15% per MT of wheat."],
   ["05", "Stronger farmer capability and field support", "Several village-level and technical sessions, supported by field advisory, reinforced practice adoption, crop management and record-keeping."],
   ["06", "Traceable and independently assured sourcing", "Digital field records, segregated procurement, audited sample farmers and Cool Farm Platform v3.0 quantification supported credible reporting."],
@@ -1976,7 +2083,7 @@ const PIPELINE_COLORS = [C.field, C.inkSoft, C.husk];
 const AUDIT_TABLE = [
   ["Data Collection", "Field-level agronomy data was digitally recorded by enrolled farmers via the FieldKhatta/ ODK application at each key intervention event.", "273 wheat farmers participated across Ludhiana and Faridkot districts."],
   ["Independent Audit", "One Peterson conducted on-site field visits to a statistically representative sample of enrolled farms, verifying recorded data against observed practices.", "17 randomly selected farmers were independently audited and verified."],
-  ["GHG Impact Calculation", "Emission reductions were quantified using the Cool Farm Platform v3.0, applying GHG Protocol and IPCC guidelines.", "Results validated and formatted for Nestlé sustainability reporting."],
+  ["GHG Impact Calculation", "Emission reductions were quantified using the Cool Farm Platform v3.0, applying GHG Protocol and IPCC guidelines.", "Results validated for Nestlé sustainability reporting."],
 ];
 
 function PipelineSteps() {
@@ -2131,16 +2238,17 @@ function ChartTip({ active, payload, unit }) {
   );
 }
 
-function ChartFrame({ title, unit, kicker, icon, children, height = 320, footnote }) {
+function ChartFrame({ title, unit, kicker, icon, children, height = 320, footnote, printNotes = [] }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, amount: 0.25 });
+  const showChart = PDF_EXPORT || inView;
   return (
     <motion.div
       ref={ref}
-      className="p-6 md:p-7 rounded-lg h-full"
+      className="chart-frame p-6 md:p-7 rounded-lg h-full"
       style={{ background: "#fff", border: `1px solid ${C.line}` }}
       initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
+      animate={showChart ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7, ease: EASE }}
       whileHover={{ boxShadow: "0 24px 48px -32px rgba(10,31,22,.5)" }}
     >
@@ -2150,13 +2258,18 @@ function ChartFrame({ title, unit, kicker, icon, children, height = 320, footnot
       </div>
       <h4 className="wh-display mt-3 text-xl md:text-2xl" style={{ color: C.field, fontWeight: 700 }}>{title}</h4>
       <div className="wh-data mt-1" style={{ fontSize: 11, color: C.mute }}>{unit}</div>
-      <div style={{ height, marginTop: 18 }}>
-        {inView && <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>}
+      <div className="chart-plot" style={{ height, marginTop: 18 }}>
+        {showChart && <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>}
       </div>
       {footnote && (
         <div className="wh-data mt-3 pt-3" style={{ fontSize: 10.5, color: C.mute, lineHeight: 1.6, borderTop: `1px solid ${C.line}` }}>
           {footnote}
         </div>
+      )}
+      {printNotes.length > 0 && (
+        <ul className="print-only chart-print-notes">
+          {printNotes.map((note) => <li key={note}>{note}</li>)}
+        </ul>
       )}
     </motion.div>
   );
@@ -2198,7 +2311,7 @@ function SeasonHeadlineResults() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.3 }}
-            className="p-6 rounded-lg h-full"
+            className="headline-card p-6 rounded-lg h-full"
             style={{ background: s.detail ? C.ink : "#fff", border: s.detail ? "none" : `1px solid ${C.line}` }}
           >
             <IconBadge icon={s.icon} color={s.detail ? "#fff" : s.tone} />
@@ -2236,7 +2349,7 @@ function AuditedSection() {
             ))}
           </div>
           {AUDIT_TABLE.map(([step, did, facts], i) => (
-            <div key={step} className="grid md:grid-cols-3" style={{ borderTop: i ? `1px solid ${C.line}` : "none", background: i % 2 ? C.paperDim : "#fff" }}>
+            <div key={step} className="audit-row grid md:grid-cols-3" style={{ borderTop: i ? `1px solid ${C.line}` : "none", background: i % 2 ? C.paperDim : "#fff" }}>
               <div className="px-5 py-4" style={{ fontWeight: 600, fontSize: 14.5, color: C.ink }}>{step}</div>
               <div className="px-5 py-4 wh-justify" style={{ fontSize: 13.5, lineHeight: 1.65, color: C.mute }}>{did}</div>
               <div className="px-5 py-4 wh-justify" style={{ fontSize: 13.5, lineHeight: 1.65, color: C.field, fontWeight: 600 }}>{facts}</div>
@@ -2249,9 +2362,10 @@ function AuditedSection() {
         <SeasonHeadlineResults />
       </Reveal>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="audit-charts-grid grid gap-5 lg:grid-cols-2">
         <ChartFrame
           kicker="Emissions intensity"
+          printNotes={EMISSIONS_WATERFALL.map(({ note }) => note)}
           icon={ICON_CO2}
           title="15% less carbon in every tonne"
           unit="kg CO₂e per MT of wheat"
@@ -2270,6 +2384,7 @@ function AuditedSection() {
 
         <ChartFrame
           kicker="Nitrogen use"
+          printNotes={NITROGEN_WATERFALL.map(({ note }) => note)}
           icon={ICON_NITROGEN}
           title="Less fertiliser, same crop"
           unit="kg nitrogen per ha"
@@ -2285,12 +2400,10 @@ function AuditedSection() {
             </Bar>
           </BarChart>
         </ChartFrame>
-      </div>
-
-      <div className="mt-5 flex justify-center">
-        <div className="w-full lg:w-1/2 lg:pl-2.5">
+        <div className="audit-water-wrapper lg:col-span-2 lg:w-1/2 lg:mx-auto lg:pl-2.5">
           <ChartFrame
             kicker="Irrigation water use"
+            printNotes={WATER_WATERFALL.map(({ note }) => note)}
             icon={ICON_WATER}
             title="46% less water per hectare"
             unit="m³ per ha"
@@ -2403,7 +2516,7 @@ function ActivityTimelineScroller() {
       });
     };
 
-    render(0);
+    render(PDF_EXPORT ? 1 : 0);
 
     gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
       ScrollTrigger.create({
@@ -2419,7 +2532,7 @@ function ActivityTimelineScroller() {
   }, []);
 
   return (
-    <div ref={scope} className="rounded-lg overflow-hidden" style={{ background: C.paperDim, border: `1px solid ${C.line}` }}>
+    <div ref={scope} className="activity-timeline rounded-lg overflow-hidden" style={{ background: C.paperDim, border: `1px solid ${C.line}` }}>
       <div className="w-full px-6 md:px-10 py-10 md:py-14" style={{ maxWidth: 1040, margin: "0 auto" }}>
         <Eyebrow big>Scroll to grow the season, October to April</Eyebrow>
 
@@ -2477,13 +2590,15 @@ function ActivityTimelineScroller() {
 function TimelineSection() {
   return (
     <Section id="timeline">
-      <SectionHead
-        index="10"
-        title="Activity Timeline"
-        lede="The wheat programme followed the crop production cycle from pre-sowing through sowing and establishment to maturity and harvest, with agronomic operations, regenerative interventions and nutrient applications aligned to each key growth stage."
-      />
+      <div className="timeline-visual-group">
+        <SectionHead
+          index="10"
+          title="Activity Timeline"
+          lede="The wheat programme followed the crop production cycle from pre-sowing through sowing and establishment to maturity and harvest, with agronomic operations, regenerative interventions and nutrient applications aligned to each key growth stage."
+        />
 
-      <ActivityTimelineScroller />
+        <ActivityTimelineScroller />
+      </div>
 
       <Reveal delay={0.1} className="mt-12 space-y-5" style={{ fontSize: 14.5, lineHeight: 1.75, color: C.mute }}>
         <p>
@@ -2494,7 +2609,7 @@ function TimelineSection() {
           completed, followed by greenhouse gas (GHG) quantification.
         </p>
         <p>
-          For participating farms, which average ~22 acres in size, the adopted practices resulted in emissions
+          For participating farms, the adopted practices resulted in emissions
           of 360 kg CO₂e/MT of wheat produced. This reflects a 15% reduction compared to Nestle's baseline
           emissions, in addition to achieving carbon removals of 364 kg CO₂e/MT of wheat.
         </p>
@@ -2554,15 +2669,15 @@ function FarmerImpactSection() {
         title="What It Meant for the Farmer"
         lede="The project strengthened farm economics through immediate cost savings and longer-term productivity gains from regenerative practice."
       />
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="impact-grid grid gap-10 lg:grid-cols-2">
         <Reveal>
-          <div className="p-7 rounded-lg h-full" style={{ background: "#fff", border: `1px solid ${C.line}`, borderTop: `3px solid ${C.field}` }}>
+          <div className="impact-card p-7 rounded-lg h-full" style={{ background: "#fff", border: `1px solid ${C.line}`, borderTop: `3px solid ${C.field}` }}>
             <h4 className="wh-display text-lg mb-6" style={{ color: C.field, fontWeight: 700 }}>Short-term impact</h4>
             <CheckList items={SHORT_TERM} color={C.field} />
           </div>
         </Reveal>
         <Reveal delay={0.1}>
-          <div className="p-7 rounded-lg h-full" style={{ background: "#fff", border: `1px solid ${C.line}`, borderTop: `3px solid ${C.leaf}` }}>
+          <div className="impact-card p-7 rounded-lg h-full" style={{ background: "#fff", border: `1px solid ${C.line}`, borderTop: `3px solid ${C.leaf}` }}>
             <h4 className="wh-display text-lg mb-6" style={{ color: C.leaf, fontWeight: 700 }}>Long-term impact</h4>
             <CheckList items={LONG_TERM} color={C.leaf} />
           </div>
@@ -2579,7 +2694,7 @@ const SOURCING_PILLARS = [
   ["Pillar 01", "Climate Action & Net Zero", "Zero Tillage machinery reduces conventional preparatory operations; optimised nitrogen use (~34% below baseline) lowers application-linked emissions. The project achieved a 15% reduction in emissions compared to the baseline, alongside net carbon removals of -364 kgCO2e/MT: a field-recorded Scope 3 contribution.", C.husk, ICON_CO2],
   ["Pillar 02", "Water Stewardship & Livelihoods", "Optimised irrigation delivers ~46% water savings against Grow Indigo's baseline; farmer training and pest-management guidance support informed, resource-efficient decisions.", C.water, ICON_WATER],
   ["Pillar 03", "Land, Forests & Biodiversity", "Zero Tillage machinery provides an alternative to open-field residue burning; soil sampling supports future soil-health assessment.", C.leaf, ICON_TREE],
-  ["Pillar 04", "Transparency & traceability", "ClearHarvest onboarding, geofencing and farmer diaries build a recorded, audit-ready trail; One Peterson provides independent review.", C.clay, ICON_SHIELD_CHECK],
+  ["Pillar 04", "Transparency & traceability", "Onboarding, geofencing and farmer diaries build a recorded, audit-ready trail; One Peterson provides independent review.", C.clay, ICON_SHIELD_CHECK],
 ];
 
 function SourcingSection() {
@@ -2656,8 +2771,8 @@ function SourcingSection() {
 const ANNEXURES = [
   ["Annexure 1", "Zero/Reduced Tillage field", annexureZtField, "Uniform crop rows and retained surface residue indicate field-level adoption of Zero/Reduced Tillage practices."],
   ["Annexure 2", "Village-level meetings with farmers", annexureVlm, "Farmers attending a VLM with the field team - six VLMs were held across the project period."],
-  ["Annexure 3", "Farmer diary", [annexureFarmerSocioeconomic, annexureLandPrepSowing], ["Farmer socio-economic profile capturing Kissan Advisor, farmer and field IDs, registered regenerative acreage, address and crop/season details.", "Land preparation and sowing register recording date of work, field ID, regenerative acres, sowing method, equipment used, time taken, fuel consumption and cost per acre."]],
-  ["Annexure 4", "Weekly WhatsApp messages sent to farmers", [annexureWhatsapp, annexureWhatsapp2], "Weekly WhatsApp messages shared vernacular videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
+  ["Annexure 3", "Farmer diary", [annexureFarmerSocioeconomic, annexureLandPrepSowing], ["Farmer socio-economic profile capturing Kisan Advisor, farmer and field IDs, registered regenerative acreage, address and crop/season details.", "Land preparation and sowing register recording date of work, field ID, regenerative acres, sowing method, equipment used, time taken, fuel consumption and cost per acre."]],
+  ["Annexure 4", "Weekly WhatsApp messages sent to farmers", [annexureWhatsapp, annexureWhatsapp2], "Videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use in vernacular language were shared through weekly WhatsApp messages. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
   ["Annexure 5", "Harvest in Action", [annexureHarvest, annexureHarvest2], "Geotagged documentation of mechanised wheat harvesting at a programme field prior to programme procurement and traceability activities in Sherpur Kalan, Punjab."],
   ["Annexure 6", "Grains ready to be transported", annexureGrains, "Harvested low-carbon programme wheat being weighed and packed in separate, clearly identifiable white bags at Kot kapura, Punjab."],
   ["Annexure 7", "Procurement Receipt", annexureReceipt, "Establishment of Procurement between Farmers and Miller: \"J Form\" issued by the Market Committee. (Seller's personal details redacted.)"],
@@ -2673,7 +2788,7 @@ function EvidenceSection() {
         title="Field Evidence"
         lede="The annexures below document field-level evidence, monitoring data and operational records collected throughout the project period - each one geo-tagged and dated at the point of capture."
       />
-      <div ref={grid} className="grid gap-6 sm:grid-cols-2">
+      <div ref={grid} className="evidence-grid grid gap-6 sm:grid-cols-2">
         {ANNEXURES.map(([tag, title, src, caption]) => {
           const srcs = Array.isArray(src) ? src : [src];
           // An array of captions pairs one caption per photo. A single shared
@@ -2726,7 +2841,7 @@ function AboutSection() {
       />
 
       <Reveal>
-        <PhotoSlot ratio="1 / 1" className="max-w-sm mx-auto" src={aboutGrowIndigoGraphic} alt="Grow Indigo - We Accelerate Ag Transformation For a Healthy Planet" />
+        <PhotoSlot ratio="1 / 1" fit="contain" className="max-w-sm mx-auto" src={aboutGrowIndigoGraphic} alt="Grow Indigo - We Accelerate Ag Transformation For a Healthy Planet" />
       </Reveal>
 
       <Reveal delay={0.1} className="mt-14">
@@ -2820,7 +2935,7 @@ function Closing() {
       <div className="mx-auto px-5 md:px-10 py-14" style={{ maxWidth: 1180 }}>
         <LogoLockup light height={40} />
         <div className="wh-data mt-8 text-center" style={{ fontSize: 10.5, color: "rgba(255,255,255,.4)", letterSpacing: ".1em" }}>
-          LOW-EMISSION WHEAT OFFTAKE · LUDHIANA FARIDKOT, PUNJAB · RABI SEASON 2025
+          © 2026 Grow Indigo. All rights reserved.
         </div>
       </div>
     </footer>
@@ -2845,7 +2960,7 @@ export default function WheatHarvestReport() {
 
       <main>
         <Hero />
-        <Ticker />
+        {!PDF_EXPORT && <Ticker />}
         <SeasonSection />
         <FieldsSection />
         <ThemesSection />

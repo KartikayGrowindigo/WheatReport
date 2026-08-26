@@ -619,13 +619,13 @@ function Panel({ level, village, field, hoverField }) {
           <Row k="Blocks / talukas" v={BLOCKS.length} />
           <Row k="Total acreage" v={`${TOTAL_ACRES.toLocaleString("en-IN")} acres / ${Math.round(TOTAL_ACRES * ACRE_TO_HA).toLocaleString("en-IN")} ha`} accent={C.leaf} />
         </div>
-        <p className="mt-5" style={{ fontSize: 13.5, lineHeight: 1.7, color: "rgba(255,255,255,.7)" }}>
-          {level === "india"
-            ? "Punjab is highlighted below - click the state to drop into the project districts."
-            : level === "punjab"
-            ? "Click again to zoom into Ludhiana & Faridkot, where enrolled fields were geo-tagged."
-            : "Click Ludhiana or Faridkot to zoom into that district, then a village pin or any field to zoom straight into it."}
-        </p>
+        {level !== "india" && (
+          <p className="mt-5" style={{ fontSize: 13.5, lineHeight: 1.7, color: "rgba(255,255,255,.7)" }}>
+            {level === "punjab"
+              ? "Click again to zoom into Ludhiana & Faridkot, where enrolled fields were geo-tagged."
+              : "Click Ludhiana or Faridkot to zoom into that district, then a village pin or any field to zoom straight into it."}
+          </p>
+        )}
       </motion.div>
     );
   }
@@ -678,7 +678,7 @@ export function WheatFieldsMapBlock() {
   }, [level, focusedDistrict, goto]);
 
   const legend = level === "village"
-    ? [...MILLERS.map((n) => [millerColor(n), n]), [HOVER_COLOR, "Hovered"], [SELECTED_COLOR, "Selected"]]
+    ? MILLERS.map((n) => [millerColor(n), n])
     : null;
 
   return (
@@ -736,7 +736,7 @@ export function WheatFieldsMapBlock() {
                       {n}
                     </div>
                     <div className="px-4 py-2.5 text-right" style={{ fontFamily: FONT_DATA, fontSize: 12, color: C.mute }}>
-                      {MILLER_PROCUREMENT_MT[n].toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                      {Math.round(MILLER_PROCUREMENT_MT[n]).toLocaleString("en-IN")}
                     </div>
                   </div>
                 ))}
