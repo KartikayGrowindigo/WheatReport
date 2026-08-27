@@ -607,10 +607,7 @@ function Panel({ level, village, field, hoverField }) {
     body = (
       <motion.div key={level} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.28, ease: EASE }}>
-        <div style={{ fontFamily: FONT_DATA, fontSize: 11, color: C.husk, letterSpacing: ".18em", fontWeight: 600 }}>
-          {LEVEL_LABEL[level].toUpperCase()}
-        </div>
-        <h3 className="mt-4" style={{ color: "#fff", fontWeight: 700, fontSize: "1.75rem", lineHeight: 1.1 }}>
+        <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "1.75rem", lineHeight: 1.1 }}>
           {level === "india" ? "Where the wheat comes from" : level === "punjab" ? "Punjab" : "Ludhiana & Faridkot"}
         </h3>
         <div className="mt-5">
@@ -619,13 +616,6 @@ function Panel({ level, village, field, hoverField }) {
           <Row k="Blocks / talukas" v={BLOCKS.length} />
           <Row k="Total acreage" v={`${TOTAL_ACRES.toLocaleString("en-IN")} acres / ${Math.round(TOTAL_ACRES * ACRE_TO_HA).toLocaleString("en-IN")} ha`} accent={C.leaf} />
         </div>
-        {level !== "india" && (
-          <p className="mt-5" style={{ fontSize: 13.5, lineHeight: 1.7, color: "rgba(255,255,255,.7)" }}>
-            {level === "punjab"
-              ? "Click again to zoom into Ludhiana & Faridkot, where enrolled fields were geo-tagged."
-              : "Click Ludhiana or Faridkot to zoom into that district, then a village pin or any field to zoom straight into it."}
-          </p>
-        )}
       </motion.div>
     );
   }

@@ -842,13 +842,12 @@ function TopBar() {
    5 · HERO
    Title, lede and meta are the document's own cover page.
 ---------------------------------------------------------------------------- */
-const HERO_LINES = [["Low-emission"], ["wheat", "offtake"]];
+const HERO_LINES = [["Low-emission"], ["Wheat", "offtake"]];
 const HERO_META = [
   ["Reporting period", "Rabi Crop Season 2025-26"],
   ["Implementation partner", "Grow Indigo"],
   ["Geography", "Ludhiana & Faridkot, Punjab"],
   ["Quantification", "Cool Farm Platform v3.0"],
-  ["Independent audit", "One Peterson"],
 ];
 
 function Hero() {
@@ -1253,11 +1252,6 @@ function FieldsSection() {
         lede="The programme covered registered wheat farms in Punjab. Farmer identities, field boundaries and agronomic information were digitally recorded to support field-level monitoring and traceability. Field-level records were organised across four processors: Gillco Agro, Golden Wheat & Allied Mills, Kohinoor Agro Foods and Ludhiana Flour Mills."
       />
       <Reveal delay={0.15}>
-        <p className="mt-4" style={{ fontSize: 16, lineHeight: 1.75, color: C.mute }}>
-          Drill from India down to Punjab, the project districts and an individual village to see every mapped
-          farmer field, coloured by procuring miller. Hover a field for its ID; click to pin its full record in
-          the panel.
-        </p>
         {!PDF_EXPORT && (
           <div className="mt-6">
             <WheatFieldsMapBlock />
@@ -1819,11 +1813,11 @@ const JOURNEY_STEPS = [
     body: "Prior to harvest, the Nestlé team collected representative wheat samples directly from programme fields and conducted pre-harvest quality and food-safety testing for pesticide residues, aflatoxins and other specified contaminants to assess compliance with applicable quality requirements.",
   },
   {
-    n: "05", title: "Low-Emission Wheat Procurement", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
+    n: "05", title: "Low-Emission Wheat procurement", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
     body: "Following farmer engagement, field teams continued to record establishment practices, fertiliser use and crop-stage information through the season from the farm to processor.",
   },
   {
-    n: "06", title: "Independent Third-Party Audit", gallery: [journeyThirdPartyAudit, journeyThirdPartyAudit2],
+    n: "06", title: "Independent Third-Party audit", gallery: [journeyThirdPartyAudit, journeyThirdPartyAudit2],
     body: "OnePeterson independently reviewed the field evidence and digital records - geo-tagged boundaries, farmer diaries, practice verification and the procurement trail - testing whether the reductions claimed are attributable to the fields that produced them.",
   },
   {
@@ -2534,8 +2528,6 @@ function ActivityTimelineScroller() {
   return (
     <div ref={scope} className="activity-timeline rounded-lg overflow-hidden" style={{ background: C.paperDim, border: `1px solid ${C.line}` }}>
       <div className="w-full px-6 md:px-10 py-10 md:py-14" style={{ maxWidth: 1040, margin: "0 auto" }}>
-        <Eyebrow big>Scroll to grow the season, October to April</Eyebrow>
-
         {/* events row - each badge sits at its month's x position */}
         <div className="relative mt-8" style={{ height: 64 }}>
           {ACTIVITY_EVENTS.map((e, i) => (
