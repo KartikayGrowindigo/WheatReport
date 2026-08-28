@@ -369,7 +369,7 @@ function DrillMap({ level, village, focusedDistrict, selected, onPickState, onPi
           .setLngLat(e.lngLat)
           .setHTML(
             `<div style="font-family:${FONT_DATA};font-size:11px;line-height:1.6">
-               <div style="font-weight:700;font-size:13px;color:${C.ink}">ID ${f.properties.id}</div>
+               <div style="font-weight:700;font-size:13px;color:${C.ink}">FARMER ID ${f.properties.id}</div>
                <div style="color:${C.mute}">${f.properties.villageName} - ${(f.properties.acresExcel * ACRE_TO_HA).toFixed(2)} ha - ${f.properties.millerName}</div>
              </div>`
           )
@@ -570,7 +570,7 @@ function Panel({ level, village, field, hoverField }) {
             </span>
           )}
         </div>
-        <h3 className="mt-4" style={{ color: "#fff", fontWeight: 700, fontSize: "1.75rem", lineHeight: 1.1 }}>ID {p.id}</h3>
+        <h3 className="mt-4" style={{ color: "#fff", fontWeight: 700, fontSize: "1.75rem", lineHeight: 1.1 }}>FARMER ID {p.id}</h3>
         <div className="mt-5">
           <Row k="Area" v={`${(p.acresExcel * ACRE_TO_HA).toFixed(2)} ha`} accent={C.leaf} />
           <Row k="Village" v={p.villageName} />
@@ -579,10 +579,6 @@ function Panel({ level, village, field, hoverField }) {
           <Row k="Procuring miller" v={p.millerName} accent={millerColor(p.millerName)} />
           <Row k="Procurement" v={`${p.procurementMt} MT`} accent={C.leaf} />
         </div>
-        <p className="mt-5" style={{ fontFamily: FONT_DATA, fontSize: 10.5, color: "rgba(255,255,255,.45)", lineHeight: 1.7 }}>
-          Boundary is a synthetic parcel drawn from the farmer's recorded coordinate and acreage
-          (no field-boundary/KML export exists for this programme yet) - not surveyed geometry.
-        </p>
       </motion.div>
     );
   } else if (level === "village" && v) {
