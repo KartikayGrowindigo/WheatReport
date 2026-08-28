@@ -41,7 +41,6 @@ import wheatPartnerLogo from "./src/assets/wheat/brand/gilogo1.png";
 import wheatProgrammeLogo from "./src/assets/wheat/brand/chnlogo-fixed.png";
 
 import monitoringApp1 from "./src/assets/wheat/docx/monitoring-app-1.jpeg";
-import monitoringApp2 from "./src/assets/wheat/docx/monitoring-app-2.jpeg";
 import monitoringApp3 from "./src/assets/wheat/docx/monitoring-app-3.jpeg";
 import monitoringApp4 from "./src/assets/wheat/docx/monitoring-app-4.jpeg";
 import monitoringApp5 from "./src/assets/wheat/docx/mm5.jpeg";
@@ -917,12 +916,6 @@ function Hero() {
       </svg>
 
       <div className="hero-content relative px-5 md:px-10 pb-16 md:pb-24 pt-32 mx-auto w-full wh-scrub" style={{ maxWidth: 1180 }}>
-        <div className="hero-eyebrow">
-          <div style={{ maxWidth: 560 }}>
-            <LogoLockup light height={38} />
-          </div>
-        </div>
-
         <h1 className="wh-display mt-8" style={{ color: "#fff", fontWeight: 800, fontSize: "clamp(2.2rem, 6.4vw, 5.2rem)", maxWidth: "20ch" }}>
           {HERO_LINES.map((line, li) => (
             <span key={li} className="wh-mask">
@@ -1737,8 +1730,8 @@ function GovernanceSection() {
             these records, performing quality checks on data accuracy, completeness and geolocation consistency
             to ensure reliable inputs for GHG accounting.
           </p>
-          <div ref={grid} className="grid gap-4 grid-cols-2 sm:grid-cols-5 mt-6">
-            {[monitoringApp1, monitoringApp2, monitoringApp3, monitoringApp4, monitoringApp5].map((src, i) => (
+          <div ref={grid} className="grid gap-4 grid-cols-2 sm:grid-cols-4 mt-6">
+            {[monitoringApp1, monitoringApp3, monitoringApp4, monitoringApp5].map((src, i) => (
               <div key={i} className="monitor-shot">
                 <PhotoSlot ratio="9 / 16" fit="contain" src={src} alt="Farmer onboarding, field-level data collection & supply chain audit trail" />
               </div>
