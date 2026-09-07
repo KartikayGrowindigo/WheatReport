@@ -124,12 +124,13 @@ const GSAP_EASE = "power3.out";
 const PDF_EXPORT =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pdf") === "1";
 
-/* PDF export: Farmer Voices (section 06) is dropped from print (the videos
-   it shows belong on the website), and the site's own numbering already
-   skips a section 07 that no longer exists. Left alone, print would jump
-   straight from "05" to "08" - renumber every section from Practice (the
-   site's "08") onward so the printed sequence reads 01-12 with no gaps. */
-const pdfSectionIndex = (n) => String(PDF_EXPORT && n >= 8 ? n - 2 : n).padStart(2, "0");
+/* The site's own numbering has a permanent gap at section 07 (dropped along
+   with the "Documented" nav tab), so every section from Practice (n=8)
+   onward is renumbered down by one everywhere, on the website and in print.
+   PDF export additionally drops Farmer Voices (section 06 - its videos
+   belong on the website only), so those same sections shift down by one
+   more in print, keeping the printed sequence 01-12 with no gaps. */
+const pdfSectionIndex = (n) => String(n >= 8 ? n - 1 - (PDF_EXPORT ? 1 : 0) : n).padStart(2, "0");
 
 function GlobalStyle() {
   return (
@@ -1216,7 +1217,7 @@ function StatRow({ stats }) {
 const ENROLMENT_HEADLINES = [
   ["273", "Farmers participated", null],
   ["2390", "Hectares", null],
-  ["7,261", "low-emission Wheat procured (in MT)", null],
+  ["7,261", "Low-emission Wheat procured (in MT)", null],
 ];
 
 const HEADLINE_RESULTS = [
@@ -1316,7 +1317,7 @@ function SeasonSection() {
             transparent field records, independent assurance and traceable procurement.
           </p>
           <div className="wh-data mt-5" style={{ fontSize: 13, color: "rgba(255,255,255,.65)", letterSpacing: ".02em" }}>
-            273 farmers enrolled · 2,390 hectares covered · 7,261 MT of low-emission wheat
+            273 farmers enrolled · 2,390 hectares covered · 7,261 MT of low-emission wheat procured
           </div>
         </div>
       </Reveal>
@@ -1574,7 +1575,7 @@ const GOVERNANCE_TABLE = [
   ["Kisan Advisors", [
     "Single point of contact for farmers",
     "Farmer engagement and mobilisation across project villages",
-    "Geofencing of Fields",
+    "Geo-fencing of fields",
     "Field visits and built awareness between farmers on Zero/Reduced tillage",
   ]],
   ["Scientists", [
@@ -1748,7 +1749,7 @@ const WF_ICONS = [
 const WORKFLOW_WHEAT = [
   ["Kisan Advisor visits the farmer", "On-field engagement and practice verification"],
   ["Capability building on interventions", "Training on sustainable practices"],
-  ["Data capture on agronomic practices", "Digitally captured the agronomy data from sowing to harvest"],
+  ["Data capture on agronomic practices", "Digital including data maintained in Farmer diary"],
   ["QC of field-reported data by scientists", "Methodological review and validation"],
   ["Procurement audit trail", "End-to-end record captured in S3 Sutra"],
   ["3rd-party audit & report submission", "Independent field verification, GHG quantification and final reporting"],
@@ -1927,7 +1928,7 @@ const JOURNEY_STEPS = [
   },
   {
     n: "02", title: "Village-Level Meetings", gallery: [journeyVlm1, journeyVlm2, journeyVlm3, journeyVlm4, journeyVlm5, journeyVlm6, journeyVlm7, journeyVlm8, journeyVlm9],
-    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero/Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping, responsible labour practices and programme participation requirements. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
+    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero/Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping and responsible labour practices. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
   },
   {
     n: "03", title: "Farmer Diaries", gallery: [journeyFarmerDiary1, journeyFarmerDiary2, journeyFarmerDiary3],
@@ -2801,7 +2802,8 @@ function TimelineSection() {
         <p>
           Sowing took place during Mid October to mid November. Farmers applied a basal dose of Di-Ammonium
           Phosphate (DAP) fertilizer at the time of seed sowing alongside early pre-emergent herbicides (Axial,
-          Leader, or Sensor). Top-dressing of urea applications followed at approximately 25 DAS and 45 DAS. Once
+          Leader, or Sensor). Top-dressing of urea applications followed at approximately 25 DAS and 45 DAS, in
+          addition to other fertilizers used by Farmers for Wheat crop. Once
           the crop reached maturity, harvesting, procurement, and supply chain traceability documentation were
           completed, followed by greenhouse gas (GHG) quantification.
         </p>
@@ -2968,8 +2970,8 @@ function SourcingSection() {
 const ANNEXURES = [
   ["Annexure 1", "Zero/Reduced Tillage field", annexureZtField, "Uniform crop rows and retained surface residue indicate field-level adoption of Zero/Reduced Tillage practices."],
   ["Annexure 2", "Village-level meetings with farmers", annexureVlm, "Farmers attending a VLM with the field team - six VLMs were held across the project period."],
-  ["Annexure 3", "Farmer diary", [annexureFarmerSocioeconomic, annexureLandPrepSowing], ["Farmer socio-economic profile capturing Kisan Advisor, farmer and field IDs, registered regenerative acreage, address and crop/season details.", "Land preparation and sowing register recording date of work, field ID, regenerative acres, sowing method, equipment used, time taken, fuel consumption and cost per acre."]],
-  ["Annexure 4", "Weekly WhatsApp messages sent to farmers", [annexureWhatsapp, annexureWhatsapp2], "Videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use in vernacular language were shared through weekly WhatsApp messages. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
+  ["Annexure 3", "Farmer diary", [annexureFarmerSocioeconomic, annexureLandPrepSowing], ["Farmer socio-economic profile capturing farmer and field IDs, registered regenerative acreage, address and crop/season details.", "Land preparation and sowing register recording date of work, field ID, regenerative acres, sowing method, equipment used, time taken, fuel consumption and cost per acre."]],
+  ["Annexure 4", "Weekly WhatsApp messages sent to farmers", [annexureWhatsapp, annexureWhatsapp2], "Videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use in vernacular language were shared through weekly WhatsApp messages. The advisories also reinforced integrated pest management, responsible chemical use, farmer diary maintenance and safe labour practices"],
   ["Annexure 5", "Harvest in Action", [annexureHarvest, annexureHarvest2], "Geotagged documentation of mechanised wheat harvesting at a programme field prior to programme procurement and traceability activities in Sherpur Kalan, Punjab."],
   ["Annexure 6", "Grains ready to be transported", annexureGrains, "Harvested low-emission programme wheat being weighed and packed in separate, clearly identifiable white bags at Kot kapura, Punjab."],
   ["Annexure 7", "Procurement Receipt", annexureReceipt, "Establishment of Procurement between Farmers and Miller: \"J Form\" issued by the Market Committee. (Seller's personal details redacted.)"],

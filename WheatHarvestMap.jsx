@@ -623,9 +623,9 @@ function Panel({ level, village, field, hoverField }) {
         </h3>
         <div className="mt-5">
           <Row k="Mapped fields" v={TOTAL_FIELDS} accent={C.leaf} />
-          <Row k="Villages" v={`${VILLAGES.length} shown`} />
+          <Row k="Villages" v={VILLAGES.length} />
           <Row k="Blocks / talukas" v={BLOCKS.length} />
-          <Row k="Total acreage" v={`${TOTAL_ACRES.toLocaleString("en-IN")} acres / ${Math.round(TOTAL_ACRES * ACRE_TO_HA).toLocaleString("en-IN")} ha`} accent={C.leaf} />
+          <Row k="Total Hectares" v={`${Math.round(TOTAL_ACRES * ACRE_TO_HA).toLocaleString("en-IN")} hectares`} accent={C.leaf} />
         </div>
       </motion.div>
     );
