@@ -146,15 +146,30 @@ const BLOCKS = [...new Set(VILLAGES.map((v) => v.block))];
 const TOTAL_ACRES = Math.round(FIELDS_FC.features.reduce((s, f) => s + f.properties.acresExcel, 0));
 const ACRE_TO_HA = 0.404686;
 
-/* Procurement (MT) per miller, in a fixed display order - LFM, Gillco,
-   Golden, Kohinoor - independent of MILLERS' own (alphabetical) order. */
-const MILLER_ORDER = ["LFM", "Gillco", "Golden", "Kohinoor"];
+/* Procurement (MT) per miller, in a fixed display order - Gillco, LFM,
+   Kohinoor, Golden - independent of MILLERS' own (alphabetical) order. */
+const MILLER_ORDER = ["Gillco", "LFM", "Kohinoor", "Golden"];
 const MILLER_PROCUREMENT_MT = Object.fromEntries(
   MILLERS.map((n) => [
     n,
     FIELDS_FC.features.filter((f) => f.properties.millerName === n).reduce((s, f) => s + f.properties.procurementMt, 0),
   ])
 );
+
+/* PDF export: the drill-down map itself is a WebGL canvas (maplibre) and
+   cannot render in a printed page, so WheatHarvest.jsx drops it entirely in
+   PDF mode. The underlying numbers behind it are plain data, though - export
+   them so the report can show a static geography summary in the map's place
+   instead of leaving that section empty. */
+export const FIELDS_MAP_SUMMARY = {
+  villages: VILLAGES.length,
+  fields: TOTAL_FIELDS,
+  blocks: BLOCKS.length,
+  acres: TOTAL_ACRES,
+  hectares: Math.round(TOTAL_ACRES * ACRE_TO_HA),
+  millerOrder: MILLER_ORDER,
+  millerProcurementMt: MILLER_PROCUREMENT_MT,
+};
 
 /** Bounding box of a FeatureCollection, for fitBounds. */
 function fcBounds(fc) {

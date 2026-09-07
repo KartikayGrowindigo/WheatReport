@@ -29,7 +29,7 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, LabelList, ResponsiveContainer } from "recharts";
-import { WheatFieldsMapBlock } from "./WheatHarvestMap.jsx";
+import { WheatFieldsMapBlock, FIELDS_MAP_SUMMARY } from "./WheatHarvestMap.jsx";
 
 /* ----------------------------------------------------------------------------
    PHOTO / MEDIA IMPORTS - LOW-CARBON WHEAT PROGRAMME DOCX ONLY
@@ -124,6 +124,13 @@ const GSAP_EASE = "power3.out";
 const PDF_EXPORT =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pdf") === "1";
 
+/* PDF export: Farmer Voices (section 06) is dropped from print (the videos
+   it shows belong on the website), and the site's own numbering already
+   skips a section 07 that no longer exists. Left alone, print would jump
+   straight from "05" to "08" - renumber every section from Practice (the
+   site's "08") onward so the printed sequence reads 01-12 with no gaps. */
+const pdfSectionIndex = (n) => String(PDF_EXPORT && n >= 8 ? n - 2 : n).padStart(2, "0");
+
 function GlobalStyle() {
   return (
     <style>{`
@@ -159,10 +166,13 @@ function GlobalStyle() {
         .screen-only { display: none !important; }
         .print-only { display: block !important; }
         .wh-root, .wh-root * {
-          opacity: 1 !important; transform: none !important; filter: none !important;
+          filter: none !important;
           visibility: visible !important; animation: none !important; clip-path: none !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
+        /* Reset motion transforms on HTML content, but preserve authored SVG
+           transforms and opacity used to construct coded illustrations. */
+        .wh-root, .wh-root *:not(svg):not(svg *) { opacity: 1 !important; transform: none !important; }
         .wh-root { overflow: visible !important; }
         .wh-root section { break-inside: auto; padding: 9mm 5mm !important; }
         .wh-root .section-head { margin-bottom: 7mm !important; break-inside: avoid; }
@@ -179,6 +189,7 @@ function GlobalStyle() {
         .wh-root .monitor-shot, .wh-root .journey-step, .wh-root .role-row,
         .wh-root .audit-row, .wh-root .stat-card, .wh-root .headline-card,
         .wh-root .chart-frame, .wh-root .impact-card,
+        .wh-root .pull-quote-card,
         .wh-root .workflow-stepper, .wh-root .activity-timeline,
         .wh-root .timeline-visual-group,
         .wh-root img, .wh-root video, .wh-root figure {
@@ -193,6 +204,27 @@ function GlobalStyle() {
         .wh-root .chart-print-notes li + li { margin-top: 5px; }
         .wh-root #fields { padding-top: 5mm !important; padding-bottom: 5mm !important; }
         .wh-root #fields .section-head { margin-bottom: 4mm !important; }
+        .wh-root #season .section-head { margin-bottom: 4mm !important; }
+        .wh-root #season .section-head h2 { font-size: 36px !important; }
+        .wh-root #season .section-head p { font-size: 14px !important; line-height: 1.48 !important; margin-top: 8px !important; }
+        .wh-root #season .section-head .section-lede { margin-top: 8px !important; }
+        .wh-root #season .section-head .season-overview p { font-size: 13px !important; line-height: 1.42 !important; margin-top: 6px !important; }
+        .wh-root #season .section-head .season-overview p:first-child { margin-top: 0 !important; }
+        .wh-root #season .grid { gap: 8px !important; }
+        .wh-root #season .stat-card { padding: 10px !important; }
+        .wh-root #season .stat-card > .inline-flex { width: 28px !important; height: 28px !important; }
+        .wh-root #season .stat-card > .inline-flex svg { width: 15px !important; height: 15px !important; }
+        .wh-root #season .stat-card .wh-display { font-size: 24px !important; margin-top: 6px !important; }
+        .wh-root #season .stat-card .mx-auto { margin-top: 4px !important; }
+        .wh-root #season .stat-card .mt-3 { margin-top: 6px !important; font-size: 12px !important; }
+        .wh-root #season .stat-card .stat-label-long { font-size: 11.25px !important; letter-spacing: -0.01em; }
+        .wh-root #season .stat-card .mt-1 { margin-top: 2px !important; font-size: 9.5px !important; }
+        .wh-root #season .mt-14, .wh-root #season .mt-12 { margin-top: 16px !important; }
+        .wh-root #season .mt-5, .wh-root #season .mt-4 { margin-top: 8px !important; }
+        .wh-root #season .space-y-5 > * + * { margin-top: 8px !important; }
+        .wh-root #season .space-y-5 p { font-size: 13px !important; line-height: 1.48 !important; }
+        .wh-root #season .p-7 { padding: 18px !important; }
+        .wh-root #season .p-7 p { font-size: 16px !important; line-height: 1.38 !important; }
         .wh-root #themes .themes-grid {
           grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important;
         }
@@ -222,6 +254,17 @@ function GlobalStyle() {
         .wh-root #evidence .evidence-grid { gap: 12px !important; }
         .wh-root #evidence .annexure-card h4 { font-size: 14px !important; }
         .wh-root #evidence .annexure-card figcaption { font-size: 9.5px !important; line-height: 1.45 !important; }
+        .wh-root .pull-quote-card { padding: 18px !important; }
+        .wh-root .traceability-figure { max-width: 38mm !important; }
+        .wh-root .wh-closing {
+          min-height: 150mm !important; display: flex !important; align-items: center !important;
+          break-inside: avoid-page; box-sizing: border-box;
+        }
+        .wh-root .wh-closing > div { width: 100%; }
+        .wh-root .hero-cover-lockup {
+          top: 4mm !important; left: 5mm !important; right: 5mm !important;
+          padding: 0 !important; width: auto !important;
+        }
         /* A section heading/eyebrow should never print as the last line on
            a page with its body pushed to the next one. Most sub-headings in
            this report are a styled Eyebrow div, not an h1-h4. */
@@ -454,7 +497,7 @@ function Eyebrow({ children, color = C.husk, className = "", big = false }) {
 function PullQuoteCard({ children, tone = C.husk, dark = false, label, className = "" }) {
   return (
     <div
-      className={`relative p-7 md:p-8 rounded-lg ${className}`}
+      className={`pull-quote-card relative p-7 md:p-8 rounded-lg ${className}`}
       style={{
         background: dark ? "rgba(255,255,255,.04)" : `${tone}14`,
         border: `1px solid ${dark ? tone + "4d" : tone + "33"}`,
@@ -507,7 +550,11 @@ function SectionHead({ index, title, lede, tone = "light" }) {
       />
       {lede && (
         <Reveal delay={0.18}>
-          <p className="mt-5 text-base md:text-lg" style={{ color: body, lineHeight: 1.65 }}>{lede}</p>
+          {typeof lede === "string" ? (
+            <p className="mt-5 text-base md:text-lg" style={{ color: body, lineHeight: 1.65 }}>{lede}</p>
+          ) : (
+            <div className="section-lede mt-5 text-base md:text-lg" style={{ color: body, lineHeight: 1.65 }}>{lede}</div>
+          )}
         </Reveal>
       )}
     </div>
@@ -915,6 +962,17 @@ function Hero() {
         })}
       </svg>
 
+      {/* PDF export only: the top bar (which normally carries both logos) is
+          stripped from print entirely, so the cover page would otherwise run
+          with no branding at all. On-screen, the nav bar's own logos already
+          cover this. Pinned across the full page width at the very top,
+          rather than inside hero-content's centred/max-width column. */}
+      {PDF_EXPORT && (
+        <div className="hero-cover-lockup absolute top-0 left-0 right-0 px-5 md:px-10 wh-scrub" style={{ paddingTop: 14 }}>
+          <LogoLockup light height={40} />
+        </div>
+      )}
+
       <div className="hero-content relative px-5 md:px-10 pb-16 md:pb-24 pt-32 mx-auto w-full wh-scrub" style={{ maxWidth: 1180 }}>
         <h1 className="wh-display mt-8" style={{ color: "#fff", fontWeight: 800, fontSize: "clamp(2.2rem, 6.4vw, 5.2rem)", maxWidth: "20ch" }}>
           {HERO_LINES.map((line, li) => (
@@ -933,9 +991,9 @@ function Hero() {
         </h1>
 
         <p className="hero-lede mt-7 text-lg md:text-xl" style={{ color: "rgba(255,255,255,.78)", maxWidth: "60ch", lineHeight: 1.6 }}>
-          Across 2,390 ha in Ludhiana and Faridkot, wheat cultivation advances regenerative agricultural practices
-          through Zero/Reduced tillage (ZT/RT), responsible residue management, optimised fertiliser use and
-          digitally traceable from farm to processor.
+          Across 2,390 hectares in the Ludhiana and Faridkot districts of Punjab, wheat cultivation advances
+          regenerative agricultural practices through Zero/Reduced Tillage (ZT/RT), crop residue management,
+          optimised fertiliser use, and digital traceability from farm to processor.
         </p>
 
         <div className="hero-meta mt-10 flex flex-wrap gap-x-10 gap-y-5">
@@ -1147,7 +1205,7 @@ function StatRow({ stats }) {
           <IconBadge icon={iconForStatLabel(label)} color={C.field} />
           <div className="wh-display mt-3" style={{ fontWeight: 800, fontSize: "2rem", color: C.field }}><RollingNumber value={value} /></div>
           <div className="mx-auto mt-2" style={{ width: 28, height: 2, background: C.husk }} />
-          <div className="mt-3" style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{label}</div>
+          <div className={`mt-3 ${label.length > 30 ? "stat-label-long" : ""}`} style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{label}</div>
           {sub && <div className="wh-data mt-1" style={{ fontSize: 11.5, color: C.mute }}>{sub}</div>}
         </div>
       ))}
@@ -1158,7 +1216,7 @@ function StatRow({ stats }) {
 const ENROLMENT_HEADLINES = [
   ["273", "Farmers participated", null],
   ["2390", "Hectares", null],
-  ["7,261", "Procurement quantity (MT)", null],
+  ["7,261", "low-emission Wheat procured (in MT)", null],
 ];
 
 const HEADLINE_RESULTS = [
@@ -1176,7 +1234,40 @@ function SeasonSection() {
       <SectionHead
         index="01"
         title="What the Season Delivered?"
-        lede="The Low-emission Wheat Offtake promoted sustainable practices like Zero/Reduced Tillage (ZT/RT) as the central practice for wheat sown after the preceding crop. The programme recorded farmer registration, field-level agronomic data including optimised fertilizer uses, crop residue management (CRM) and irrigation water use followed by an independent third-party audit."
+        lede={(
+          <div className="season-overview space-y-3">
+            <p>
+              The programme followed a structured, season-long approach covering farmer onboarding, adoption of
+              regenerative agriculture practices, field-level documentation, and traceability through to the mill.
+            </p>
+            <p>
+              Farmers were enrolled into the programme and their fields were geo-fenced to establish a clearly
+              defined and traceable programme area. Awareness and capacity-building activities were conducted
+              through village-level meetings and digital farmer outreach, with a focus on key regenerative
+              agriculture practices such as Zero/Reduced Tillage (ZT/RT), crop residue management, optimised
+              fertiliser application, and efficient irrigation and water management.
+            </p>
+            <p>
+              Farmers were also encouraged to adopt nature-based Biological Agri Inputs as part of the programme.
+              To promote responsible crop protection practices, farmers were specifically advised to avoid the use
+              of Malathion and Chlorpyrifos, in line with the programme requirements.
+            </p>
+            <p>
+              To strengthen field-level monitoring and documentation, farmers maintained Farmer Diaries with the
+              help of Kisan Advisors, recording key information such as input application, fertiliser use,
+              irrigation events, and other relevant farm operations. This enabled systematic documentation of
+              practices implemented during the season.
+            </p>
+            <p>
+              At harvest, the programme wheat was segregated in designated white PP bags to maintain identity
+              preservation and ensure traceability across the supply chain, from farm to mill.
+            </p>
+            <p>
+              To independently validate programme implementation and compliance, Nestlé appointed OnePeterson to
+              undertake a third-party audit of the activities and processes implemented under the programme.
+            </p>
+          </div>
+        )}
       />
 
       <Reveal>
@@ -1225,11 +1316,57 @@ function SeasonSection() {
             transparent field records, independent assurance and traceable procurement.
           </p>
           <div className="wh-data mt-5" style={{ fontSize: 13, color: "rgba(255,255,255,.65)", letterSpacing: ".02em" }}>
-            273 farmers enrolled · 2,390 hectares covered · 7,261 MT of wheat procured
+            273 farmers enrolled · 2,390 hectares covered · 7,261 MT of low-emission wheat
           </div>
         </div>
       </Reveal>
     </Section>
+  );
+}
+
+const MILLER_FULL_NAME = {
+  LFM: "Ludhiana Flour Mills",
+  Gillco: "Gillco Agro",
+  Golden: "Golden Wheat & Allied Mills",
+  Kohinoor: "Kohinoor Agro Foods",
+};
+
+/* PDF export: the drill-down map is a WebGL (maplibre) canvas and cannot
+   render in a printed page, so FieldsSection drops it entirely in PDF mode.
+   Rather than leave the section as just a heading and blank space, print
+   gets this static summary instead - the same underlying figures, as stat
+   cards and a processor table. */
+function FieldsPrintSummary() {
+  const stats = [
+    [String(FIELDS_MAP_SUMMARY.villages), "Villages mapped", "Ludhiana & Faridkot, Punjab"],
+    [String(FIELDS_MAP_SUMMARY.fields), "Farmer fields geo-tagged", null],
+    [String(FIELDS_MAP_SUMMARY.blocks), "Blocks / talukas", null],
+    [FIELDS_MAP_SUMMARY.hectares.toLocaleString("en-IN"), "Hectares mapped", null],
+  ];
+  return (
+    <div className="mt-6 space-y-6">
+      <StatRow stats={stats} />
+      <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${C.line}` }}>
+        <div className="grid grid-cols-2" style={{ background: C.field }}>
+          <div className="px-4 py-2.5" style={{ fontSize: 11, color: "#fff", fontWeight: 700, letterSpacing: ".08em" }}>PROCESSOR</div>
+          <div className="px-4 py-2.5 text-right" style={{ fontSize: 11, color: "#fff", fontWeight: 700, letterSpacing: ".08em" }}>PROCUREMENT (MT)</div>
+        </div>
+        {FIELDS_MAP_SUMMARY.millerOrder.map((code, i) => (
+          <div
+            key={code}
+            className="grid grid-cols-2"
+            style={{ borderTop: i ? `1px solid ${C.line}` : "none", background: i % 2 ? C.paperDim : "#fff" }}
+          >
+            <div className="px-4 py-2.5" style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}>
+              {MILLER_FULL_NAME[code] || code}
+            </div>
+            <div className="px-4 py-2.5 text-right wh-data" style={{ fontSize: 13, color: C.mute }}>
+              {Math.round(FIELDS_MAP_SUMMARY.millerProcurementMt[code] || 0).toLocaleString("en-IN")}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1242,10 +1379,10 @@ function FieldsSection() {
       <SectionHead
         index="02"
         title="Every Field on the Map"
-        lede="The programme covered registered wheat farms in Punjab. Farmer identities, field boundaries and agronomic information were digitally recorded to support field-level monitoring and traceability. Field-level records were organised across four processors: Gillco Agro, Golden Wheat & Allied Mills, Kohinoor Agro Foods and Ludhiana Flour Mills."
+        lede="The programme covered registered fields in the Ludhiana and Faridkot districts of Punjab. Farmer identities, field boundaries and agronomic information were digitally recorded to support field-level monitoring and traceability. Field-level records were organised across four processors: Gillco Agro, Ludhiana Flour Mills, Kohinoor Agro Foods and Golden Wheat & Allied Mills."
       />
       <Reveal delay={0.15}>
-        {!PDF_EXPORT && (
+        {PDF_EXPORT ? <FieldsPrintSummary /> : (
           <div className="mt-6">
             <WheatFieldsMapBlock />
           </div>
@@ -1748,14 +1885,14 @@ function GovernanceSection() {
         <div className="mt-14">
           <h4 className="wh-display text-lg" style={{ color: C.field, fontWeight: 700 }}>Traceability</h4>
           <p className="mt-3" style={{ fontSize: 16, lineHeight: 1.72, color: C.mute }}>
-            Post harvest and during procurement, S3 Sutra enabled traceability of low-emission paddy from farm to
+            Post harvest and during procurement, S3 Sutra enabled traceability of low-emission wheat from farm to
             processor. It captured the complete audit trail, documenting farmer validation, produce quantities, and
-            movement of low-emission paddy. This integrated approach created a robust monitoring and verification
+            movement of low-emission wheat. This integrated approach created a robust monitoring and verification
             system that delivered high-quality data, ensured credible traceability, and supported accurate GHG
             quantification aligned with Nestlé reporting requirements.
           </p>
           <Reveal delay={0.1} className="mt-6">
-            <PhotoSlot className="max-w-md mx-auto" src={traceabilityFlow} alt="Node-to-node view, Farm-to-processor traceability flow" caption="Node-to-node view, Farm-to-processor traceability flow" />
+            <PhotoSlot className="traceability-figure max-w-md mx-auto" src={traceabilityFlow} alt="Node-to-node view, Farm-to-processor traceability flow" caption="Node-to-node view, Farm-to-processor traceability flow" />
           </Reveal>
         </div>
 
@@ -1795,7 +1932,7 @@ const JOURNEY_STEPS = [
   },
   {
     n: "02", title: "Village-Level Meetings", gallery: [journeyVlm1, journeyVlm2, journeyVlm3, journeyVlm4, journeyVlm5, journeyVlm6, journeyVlm7, journeyVlm8, journeyVlm9],
-    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero Tillage and Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping, responsible labour practices and programme participation requirements. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements. The meetings also reinforced awareness of low-carbon wheat production, sustainable procurement, the wider ClearHarvest sustainability programme and the Carbon Credit initiative, supporting practical adoption of improved practices at field level.",
+    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero Tillage and Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping, responsible labour practices and programme participation requirements. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
   },
   {
     n: "03", title: "Farmer Diaries", gallery: [journeyFarmerDiary1, journeyFarmerDiary2, journeyFarmerDiary3],
@@ -1806,16 +1943,16 @@ const JOURNEY_STEPS = [
     body: "Prior to harvest, the Nestlé team collected representative wheat samples directly from programme fields and conducted pre-harvest quality and food-safety testing for pesticide residues, aflatoxins and other specified contaminants to assess compliance with applicable quality requirements.",
   },
   {
-    n: "05", title: "Low-Emission Wheat procurement", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
+    n: "05", title: "Season-long field monitoring", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
     body: "Following farmer engagement, field teams continued to record establishment practices, fertiliser use and crop-stage information through the season from the farm to processor.",
   },
   {
     n: "06", title: "Independent Third-Party audit", gallery: [journeyThirdPartyAudit, journeyThirdPartyAudit2],
-    body: "OnePeterson independently reviewed the field evidence and digital records - geo-tagged boundaries, farmer diaries, practice verification and the procurement trail - testing whether the reductions claimed are attributable to the fields that produced them.",
+    body: "Nestlé appointed OnePeterson to independently verify the monitoring methodology, farmer- and field-level records, supporting evidence and procurement traceability, assessing the completeness, consistency and accuracy of the data, and recompute GHG reductions against the baseline.",
   },
   {
     n: "07", title: "Quantification and Reporting", gallery: [journeyQuantification1, journeyQuantification2],
-    body: "Grow Indigo quantified emissions on the Cool Farm Platform v3.0 using the square-root sample, then compiled this report. The assessment applied the GHG Protocol framework and IPCC guidelines. Results were reviewed and prepared for Nestlé's sustainability reporting.",
+    body: "Grow Indigo quantified GHG emissions for the agreed sample fields using the Cool Farm Platform v3.0 and shared the results and supporting calculations with Nestlé and OnePeterson for review and verification.",
   },
 ];
 
@@ -1890,7 +2027,7 @@ function JourneySection() {
                         <img
                           src={src}
                           alt={step.title}
-                          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       </div>
                     </CursorFollow>
@@ -1992,7 +2129,7 @@ function PracticeSection() {
   return (
     <Section id="practice">
       <SectionHead
-        index="08"
+        index={pdfSectionIndex(8)}
         title="Tillage: One Establishment Change, Multiple Returns"
         lede="Using the ZT/RT practices, the wheat could be sown through retained residue without the conventional sequence of repeated land preparation. The practice reduced soil disturbance supported non-burning residue management and lowered the requirement for preparatory tractor operations."
       />
@@ -2325,7 +2462,7 @@ function SeasonHeadlineResults() {
 function AuditedSection() {
   return (
     <Section id="audited" tone="tint">
-      <SectionHead index="09" title="Sampled. Quantified. Audited." lede="Carbon Accounting and Audit Pipeline: digital field-data collection, independent third-party audit, and GHG calculation." />
+      <SectionHead index={pdfSectionIndex(9)} title="Sampled. Quantified. Audited." lede="Carbon Accounting and Audit Pipeline: digital field-data collection, independent third-party audit, and GHG calculation." />
       <Reveal><PipelineSteps /></Reveal>
 
       <Reveal delay={0.12} className="mt-10">
@@ -2572,17 +2709,97 @@ function ActivityTimelineScroller() {
   );
 }
 
+/* PDF export: the scroller above is driven by a GSAP ScrollTrigger pin,
+   which never runs in the print snapshot - it would collapse to one cluster
+   parked at the far edge of the box, mostly clipped, leaving the field row
+   almost empty. Print instead gets a static "filmstrip": one small stalk
+   cluster per growth stage, spread across the same axis, so the whole row
+   reads as a growth progression rather than a single dead frame. */
+const ACTIVITY_STATIC_FRAMES = [0.06, 0.24, 0.42, 0.6, 0.78, 1];
+
+function ActivityTimelineStatic() {
+  const nMonths = ACTIVITY_MONTHS.length - 1;
+  return (
+    <div className="activity-timeline rounded-lg overflow-hidden" style={{ background: C.paperDim, border: `1px solid ${C.line}` }}>
+      <div className="w-full px-6 md:px-10 py-10 md:py-14" style={{ maxWidth: 1040, margin: "0 auto" }}>
+        <div className="relative mt-8" style={{ height: 64 }}>
+          {ACTIVITY_EVENTS.map((e, i) => (
+            <div
+              key={i}
+              className="wh-data absolute -translate-x-1/2 px-2.5 py-1.5 rounded whitespace-nowrap"
+              style={{
+                left: `${(e.month / nMonths) * 92 + 4}%`,
+                top: i % 2 ? 0 : undefined,
+                bottom: i % 2 ? undefined : 0,
+                background: e.color,
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 700,
+                boxShadow: "0 6px 14px -6px rgba(10,31,22,.35)",
+              }}
+            >
+              {e.label}
+            </div>
+          ))}
+        </div>
+
+        <div className="relative mt-12" style={{ height: 260 }}>
+          <div className="absolute left-0 right-0" style={{ bottom: 0, height: 1, background: C.line }} />
+          {ACTIVITY_STATIC_FRAMES.map((p, fi) => {
+            const h = 8 + p * 100;
+            const earStart = 0.62, earEnd = 0.74;
+            const earOpacity = p < earStart ? 0 : p < earEnd ? (p - earStart) / (earEnd - earStart) : 1;
+            const goldT = Math.max(0, Math.min(1, (p - 0.72) / 0.28));
+            const color = gsap.utils.interpolate(C.leaf, C.husk, goldT);
+            const xPct = 4 + p * 92;
+            return (
+              <div key={fi} className="absolute" style={{ left: `${xPct}%`, bottom: 0, marginLeft: -30 }}>
+                <svg width="60" height="230" viewBox="0 0 60 230" aria-hidden="true">
+                  <rect x="5" y="222" width="50" height="8" rx="3" fill={C.clay} opacity="0.35" />
+                  <g transform="translate(30, 222)">
+                    <path d={`M0 0 Q0 ${-h * 0.55} 0 ${-h}`} stroke={color} strokeWidth="3" fill="none" strokeLinecap="round" />
+                    <g transform={`translate(0, ${-h - 7})`}>
+                      <WheatEar opacity={earOpacity} />
+                    </g>
+                  </g>
+                </svg>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="relative mt-6 flex justify-between">
+          {ACTIVITY_MONTHS.map((m, i) => (
+            <div
+              key={m}
+              className="wh-data text-center"
+              style={{
+                width: `${100 / ACTIVITY_MONTHS.length}%`,
+                fontSize: 13,
+                fontWeight: i === ACTIVITY_MONTHS.length - 1 ? 800 : 700,
+                color: i === ACTIVITY_MONTHS.length - 1 ? C.field : C.mute,
+              }}
+            >
+              {m.toUpperCase()}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TimelineSection() {
   return (
     <Section id="timeline">
       <div className="timeline-visual-group">
         <SectionHead
-          index="10"
+          index={pdfSectionIndex(10)}
           title="Activity Timeline"
           lede="The wheat programme followed the crop production cycle from pre-sowing through sowing and establishment to maturity and harvest, with agronomic operations, regenerative interventions and nutrient applications aligned to each key growth stage."
         />
 
-        <ActivityTimelineScroller />
+        {PDF_EXPORT ? <ActivityTimelineStatic /> : <ActivityTimelineScroller />}
       </div>
 
       <Reveal delay={0.1} className="mt-12 space-y-5" style={{ fontSize: 14.5, lineHeight: 1.75, color: C.mute }}>
@@ -2650,7 +2867,7 @@ function FarmerImpactSection() {
   return (
     <Section id="farmerimpact" tone="tint">
       <SectionHead
-        index="11"
+        index={pdfSectionIndex(11)}
         title="What It Meant for the Farmer"
         lede="The project strengthened farm economics through immediate cost savings and longer-term productivity gains from regenerative practice."
       />
@@ -2688,7 +2905,7 @@ function SourcingSection() {
   return (
     <Section id="sourcing" tone="dark">
       <SectionHead
-        index="12"
+        index={pdfSectionIndex(12)}
         tone="dark"
         title="Mapped to Nestlé's Responsible Sourcing Standard"
         lede="The standard sets out how the supply chain is expected to operate - environmental performance, human-rights protection, traceability and farmer livelihoods. Every intervention deployed in Ludhiana and Faridkot maps onto a pillar, and every metric here supports Nestlé's Responsible Sourcing."
@@ -2764,12 +2981,32 @@ const ANNEXURES = [
   ["Annexure 8", "Independent third-party audit", annexureAudit, "Third Party auditor in field with the Grow Indigo team and participating farmers."],
 ];
 
+/* Several of these source photos are portrait (phone screenshots, scanned
+   forms) rather than the landscape shape a "4 / 3" box assumes - forced into
+   that box, a portrait photo prints as a narrow vertical strip stranded in a
+   wide horizontal frame. Each entry here is that photo's own real aspect
+   ratio (from its actual pixel dimensions), so its box always matches its
+   orientation instead of letterboxing it. */
+const ANNEXURE_PHOTO_RATIO = new Map([
+  [annexureVlm, "1280 / 960"],
+  [annexureZtField, "494 / 659"],
+  [annexureFarmerSocioeconomic, "586 / 695"],
+  [annexureLandPrepSowing, "714 / 450"],
+  [annexureWhatsapp, "577 / 1190"],
+  [annexureWhatsapp2, "454 / 720"],
+  [annexureHarvest, "891 / 1600"],
+  [annexureHarvest2, "891 / 1600"],
+  [annexureGrains, "888 / 499"],
+  [annexureReceipt, "600 / 800"],
+  [annexureAudit, "1600 / 900"],
+]);
+
 function EvidenceSection() {
   const grid = useBatchReveal(".annexure-card", { stagger: 0.07 });
   return (
     <Section id="evidence">
       <SectionHead
-        index="13"
+        index={pdfSectionIndex(13)}
         title="Field Evidence"
         lede="The annexures below document field-level evidence, monitoring data and operational records collected throughout the project period - each one geo-tagged and dated at the point of capture."
       />
@@ -2785,10 +3022,10 @@ function EvidenceSection() {
             <div key={tag} className="annexure-card">
               <Eyebrow>{tag}</Eyebrow>
               <h4 className="wh-display mt-1 text-lg" style={{ color: C.ink, fontWeight: 700 }}>{title}</h4>
-              <div className={`mt-3 ${srcs.length > 1 ? "grid gap-3 grid-cols-2" : ""}`}>
+              <div className={`mt-3 ${srcs.length > 1 ? "grid gap-3 grid-cols-2 items-start" : ""}`}>
                 {srcs.map((s, i) => (
                   <CursorFollow key={i} label={tag}>
-                    <PhotoSlot ratio="4 / 3" fit="contain" src={s} alt={title} caption={perPhotoCaptions?.[i]} />
+                    <PhotoSlot ratio={ANNEXURE_PHOTO_RATIO.get(s) || "4 / 3"} fit="contain" src={s} alt={title} caption={perPhotoCaptions?.[i]} />
                   </CursorFollow>
                 ))}
               </div>
@@ -2820,7 +3057,7 @@ function AboutSection() {
   return (
     <Section id="about" tone="tint">
       <SectionHead
-        index="14"
+        index={pdfSectionIndex(14)}
         title="About Grow Indigo"
         lede="Grow Indigo is a pioneering agri-tech company, with a focus on advancing sustainable agriculture to improve farmer profitability, environmental sustainability, and consumer health. Our mission is to accelerate agricultural transformation for a healthier planet, driven by four core pillars."
       />
@@ -2916,7 +3153,7 @@ function LogoLockup({ light = false, height = 34, rule = true }) {
 ---------------------------------------------------------------------------- */
 function Closing() {
   return (
-    <footer style={{ background: C.ink }}>
+    <footer className="wh-closing" style={{ background: C.ink }}>
       <div className="mx-auto px-5 md:px-10 py-14" style={{ maxWidth: 1180 }}>
         <LogoLockup light height={40} />
         <div className="wh-data mt-8 text-center" style={{ fontSize: 10.5, color: "rgba(255,255,255,.4)", letterSpacing: ".1em" }}>
