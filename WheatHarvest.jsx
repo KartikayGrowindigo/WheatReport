@@ -1454,15 +1454,15 @@ const THEMES = [
     n: "Theme 03", category: "Program Competencies", title: "A High-touch, Phygital Extension Model", icon: ICON_EXTENSION, color: C.husk,
     stat: "Several Village-Level Meetings across the season",
     paragraphs: [
-      "Kisan Advisors (KAs) conducted regular field visits throughout the wheat season, from field establishment to harvest, enabling one-on-one farmer support, field-level troubleshooting and verification of zero/reduced tillage practices, fertiliser application, crop protection and residue management.",
+      "Kisan Advisors (KAs) conducted regular field visits throughout the wheat season, from field establishment to harvest, enabling one-on-one farmer support, field-level troubleshooting, and verification of the adoption of Zero/Reduced Tillage (ZT/RT), fertiliser application and crop residue management.",
       <>
-        Grow Indigo's digital learning platform on{" "}
+        Grow Indigo's{" "}
         <a href="https://www.youtube.com/@growindigoindia" target="_blank" rel="noopener noreferrer" style={{ color: C.husk, textDecoration: "underline" }}>
-          YouTube (@growindigoindia)
+          YouTube channel (@growindigoindia)
         </a>{" "}
-        featured simple, vernacular videos on regenerative agriculture, water-saving methods, soil health and
-        climate-smart practices, complemented by weekly WhatsApp messages carrying similar vernacular videos and
-        visual infographics, giving farmers continuous learning support.
+        featured simple, vernacular videos on regenerative agriculture, water-saving methods, soil health, and
+        climate-smart practices. This was complemented by weekly digital outreach featuring vernacular videos and
+        visual infographics, providing farmers with continuous learning and advisory support throughout the season.
       </>,
     ],
     bullets: THEME_3_BULLETS,
@@ -1574,7 +1574,7 @@ const GOVERNANCE_TABLE = [
   ["Kisan Advisors", [
     "Single point of contact for farmers",
     "Farmer engagement and mobilisation across project villages",
-    "Field geofencing in the ClearHarvest application",
+    "Geofencing of Fields",
     "Field visits and built awareness between farmers on Zero/Reduced tillage",
   ]],
   ["Scientists", [
@@ -1856,10 +1856,10 @@ function GovernanceSection() {
         <div className="mt-8">
           <h4 className="wh-display text-lg" style={{ color: C.field, fontWeight: 700 }}>Monitoring and Measurement</h4>
           <p className="mt-3" style={{ fontSize: 16, lineHeight: 1.72, color: C.mute }}>
-            Grow Indigo implemented a structured, phygital monitoring system that combined regular field-level
-            observations with digital data capture to ensure accuracy, traceability and verification. Throughout
+            Grow Indigo implemented a structured, phygital monitoring system that combined regular field visits
+            with digital data capture to ensure accuracy, traceability and verification. Throughout
             the season, Kisan Advisors conducted periodic field visits to monitor crop growth, verify sustainable
-            establishment practices, nutrient applications and update farmer diaries. Farmer
+            practices, nutrient applications and update farmer diaries. Farmer
             information, field boundary geofencing and agronomy information (fertiliser, pesticide use,
             irrigation method) was recorded using the FieldKhatta application, ODK and farmer diaries. All mapped
             field boundaries were also quality-checked and verified using Remote Sensing to confirm spatial
@@ -1928,11 +1928,11 @@ function GovernanceSection() {
 const JOURNEY_STEPS = [
   {
     n: "01", title: "Programme Kick-off", gallery: [journeyKickoff, journeyKickoff2],
-    body: "The programme began with alignment on scope, geography and implementation requirements. Field identification and deployment of the programme team followed, establishing the operational base for farmer engagement and seasonal monitoring.",
+    body: "The programme began with alignment on the scope, geography and implementation requirements. This was followed by field identification and deployment of the programme team, laying the operational foundation for farmer engagement and seasonal monitoring.",
   },
   {
     n: "02", title: "Village-Level Meetings", gallery: [journeyVlm1, journeyVlm2, journeyVlm3, journeyVlm4, journeyVlm5, journeyVlm6, journeyVlm7, journeyVlm8, journeyVlm9],
-    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero Tillage and Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping, responsible labour practices and programme participation requirements. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
+    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero/Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping, responsible labour practices and programme participation requirements. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
   },
   {
     n: "03", title: "Farmer Diaries", gallery: [journeyFarmerDiary1, journeyFarmerDiary2, journeyFarmerDiary3],
@@ -2122,7 +2122,7 @@ const RETURNS_GRID = [
   ["06", "Traceable and independently assured sourcing", "Digital field records, segregated procurement, audited sample farmers and Cool Farm Platform v3.0 quantification supported credible reporting."],
 ];
 
-const PRACTICE_BIG_PICTURE = "Zero/Reduced Tillage is one establishment change with multiple connected benefits: fewer preparatory operations, retained crop residue, reduced soil disturbance, an alternative to open-field burning and lower tillage-related fuel use and emissions. Supported by optimised nitrogen application, farmer guidance and digital traceability, it provides a practical foundation for lower-carbon emission production.";
+const PRACTICE_BIG_PICTURE = "Zero/Reduced Tillage is one establishment change with multiple connected benefits: fewer preparatory operations, retained crop residue, reduced soil disturbance, an alternative to open-field burning and lower tillage-related fuel use and emissions. Supported by optimised nitrogen application, farmer guidance and digital traceability, it provides a practical foundation for lower-emission wheat production.";
 
 function PracticeSection() {
   const grid = useBatchReveal(".returns-card", { stagger: 0.08 });
@@ -2131,7 +2131,7 @@ function PracticeSection() {
       <SectionHead
         index={pdfSectionIndex(8)}
         title="Tillage: One Establishment Change, Multiple Returns"
-        lede="Using the ZT/RT practices, the wheat could be sown through retained residue without the conventional sequence of repeated land preparation. The practice reduced soil disturbance supported non-burning residue management and lowered the requirement for preparatory tractor operations."
+        lede="Under ZT/RT practices, wheat was sown through retained crop residue without the conventional sequence of repeated land preparation. This reduced soil disturbance, supported non-burning residue management, and lowered the need for preparatory tractor operations."
       />
       <div ref={grid} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {RETURNS_GRID.map(([n, title, body]) => (
@@ -2205,7 +2205,7 @@ const PIPELINE_ICONS = [ICON_CLIPBOARD, ICON_SHIELD_CHECK, ICON_CHART];
 const PIPELINE_COLORS = [C.field, C.inkSoft, C.husk];
 
 const AUDIT_TABLE = [
-  ["Data Collection", "Field-level agronomy data was digitally recorded by enrolled farmers via the FieldKhatta/ ODK application at each key intervention event.", "273 wheat farmers participated across Ludhiana and Faridkot districts."],
+  ["Data Collection", "Field-level agronomy data was digitally recorded by enrolled farmers via the FieldKhatta/ODK/Farmer diary application at each key intervention event.", "273 wheat farmers participated across Ludhiana and Faridkot districts."],
   ["Independent Audit", "One Peterson conducted on-site field visits to a statistically representative sample of enrolled farms, verifying recorded data against observed practices.", "17 randomly selected farmers were independently audited and verified."],
   ["GHG Impact Calculation", "Emission reductions were quantified using the Cool Farm Platform v3.0, applying GHG Protocol and IPCC guidelines.", "Results validated for Nestlé sustainability reporting."],
 ];
@@ -2825,7 +2825,7 @@ function TimelineSection() {
 ---------------------------------------------------------------------------- */
 const SHORT_TERM = [
   ["Lower labour and establishment costs", "The ZT/RT practice reduced repeated land-preparation operations, lowering tractor use, fuel consumption, labour requirements, and overall wheat establishment costs."],
-  ["Fertiliser savings", "Guided nutrient management reduced nitrogen application from 187 kg N/ha to 123 kg N/ha, saving 64 kg N/ha and lowering fertiliser expenditure without attributing the reduction to biological inputs."],
+  ["Fertiliser savings", "Guided nutrient management reduced nitrogen application from 187 kg N/ha to 123 kg N/ha, saving 64 kg N/ha and lowering fertiliser expenditure."],
   ["Water savings", "Direct sowing under retained residue helped conserve soil moisture and reduced the need for irrigation during crop establishment, contributing to lower pumping and irrigation costs."],
   ["Reduced residue-management costs", "Retaining and sowing through crop residue provided an alternative to burning and avoided additional labour and machinery costs associated with residue removal or disposal."],
   ["Improved input-use efficiency", "Regular field-team guidance helped farmers apply fertiliser and irrigation more judiciously, supporting immediate savings in labour, water, and production inputs."],
@@ -2837,7 +2837,7 @@ const LONG_TERM = [
   ["Better soil moisture retention", "Reduced soil disturbance and retained crop residue can limit surface evaporation and improve moisture conservation, helping maintain water availability for the wheat crop during dry periods."],
   ["Improved water-use efficiency", "Over successive seasons, better soil structure and moisture retention can reduce dependence on frequent irrigation and improve the efficiency of water used for wheat production."],
   ["Lower environmental footprint", "Reduced tillage operations, more efficient fertiliser use and improved residue management can contribute to lower fuel use, nutrient losses and greenhouse-gas emissions across successive wheat seasons."],
-  ["Stronger market access", "Traceable, low-carbon wheat opens premium procurement linkages with sustainability-focused buyers like Nestlé."],
+  ["Stronger market access", "Traceable, low-emission wheat opens premium procurement linkages with sustainability-focused buyers like Nestlé."],
 ];
 
 function CheckList({ items, color }) {
@@ -2908,7 +2908,7 @@ function SourcingSection() {
         index={pdfSectionIndex(12)}
         tone="dark"
         title="Mapped to Nestlé's Responsible Sourcing Standard"
-        lede="The standard sets out how the supply chain is expected to operate - environmental performance, human-rights protection, traceability and farmer livelihoods. Every intervention deployed in Ludhiana and Faridkot maps onto a pillar, and every metric here supports Nestlé's Responsible Sourcing."
+        lede="The standard sets out expectations for how the supply chain should operate, covering environmental performance, protection of human rights, traceability and farmer livelihoods. Each intervention implemented in Ludhiana and Faridkot aligns with one or more of these pillars, while the associated metrics support Nestlé's Responsible Sourcing requirements."
       />
       <div ref={grid} className="grid gap-4 sm:grid-cols-2">
         {SOURCING_PILLARS.map(([pillar, name, body, color, icon]) => {
@@ -2976,7 +2976,7 @@ const ANNEXURES = [
   ["Annexure 3", "Farmer diary", [annexureFarmerSocioeconomic, annexureLandPrepSowing], ["Farmer socio-economic profile capturing Kisan Advisor, farmer and field IDs, registered regenerative acreage, address and crop/season details.", "Land preparation and sowing register recording date of work, field ID, regenerative acres, sowing method, equipment used, time taken, fuel consumption and cost per acre."]],
   ["Annexure 4", "Weekly WhatsApp messages sent to farmers", [annexureWhatsapp, annexureWhatsapp2], "Videos and visual infographics on Zero/Reduced Tillage, crop residue management and balanced fertiliser use in vernacular language were shared through weekly WhatsApp messages. The advisories also reinforced integrated pest management, responsible chemical use, farmer-diary maintenance and safe labour practices"],
   ["Annexure 5", "Harvest in Action", [annexureHarvest, annexureHarvest2], "Geotagged documentation of mechanised wheat harvesting at a programme field prior to programme procurement and traceability activities in Sherpur Kalan, Punjab."],
-  ["Annexure 6", "Grains ready to be transported", annexureGrains, "Harvested low-carbon programme wheat being weighed and packed in separate, clearly identifiable white bags at Kot kapura, Punjab."],
+  ["Annexure 6", "Grains ready to be transported", annexureGrains, "Harvested low-emission programme wheat being weighed and packed in separate, clearly identifiable white bags at Kot kapura, Punjab."],
   ["Annexure 7", "Procurement Receipt", annexureReceipt, "Establishment of Procurement between Farmers and Miller: \"J Form\" issued by the Market Committee. (Seller's personal details redacted.)"],
   ["Annexure 8", "Independent third-party audit", annexureAudit, "Third Party auditor in field with the Grow Indigo team and participating farmers."],
 ];
@@ -3048,7 +3048,7 @@ function EvidenceSection() {
 const VERTICALS = [
   ["01", "NATURE-BASED CROP INPUTS", "Biologicals", "We empower farmers with innovative biological products that enhance soil health, promote plant growth, and unlock the full potential of their land.", C.leaf],
   ["02", "CARBON FARMING", "Carbon - Regen Ag", "We're building India's leading vertically integrated carbon program. This program delivers high-quality, certified carbon units, safeguarding businesses from greenwashing claims and driving positive climate action.", C.field],
-  ["03", "SCOPE 3 INSETTING", "ClearHarvest", "With our combined expertise of biologicals and carbon accounting, we help food, beverage, and apparel companies reduce farm-side emissions to achieve their net-zero goals.", C.husk],
+  ["03", "SCOPE 3 INSETTING", "ClearHarvest", "With our combined expertise in biological agri-inputs and carbon, we help food, beverage and apparel companies reduce on-farm emissions and support their net-zero goals.", C.husk],
   ["04", "CARBON-NEGATIVE SOIL AMENDMENT", "Biochar", "We convert crop residue into high-quality biochar, restoring soil health and unlocking a permanent, verifiable route to carbon removal - while ending the need for open-field burning.", C.clay],
 ];
 
@@ -3091,7 +3091,7 @@ function AboutSection() {
       <Reveal delay={0.1} className="mt-14">
         <div className="p-7 rounded-lg text-center" style={{ background: C.ink }}>
           <Eyebrow color={C.husk} big>Get in touch</Eyebrow>
-          <div className="wh-display mt-3" style={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>ClearHarvest - Grow Indigo</div>
+          <div className="wh-display mt-3" style={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>ClearHarvest by Grow Indigo</div>
           <div className="mt-4 flex flex-wrap justify-center gap-x-10 gap-y-2" style={{ color: "rgba(255,255,255,.78)", fontSize: 14 }}>
             <div><span style={{ color: "rgba(255,255,255,.5)" }}>Email: </span>clearharvest@growindigo.co.in</div>
           </div>
