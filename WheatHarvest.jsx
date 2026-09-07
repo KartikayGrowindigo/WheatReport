@@ -783,7 +783,7 @@ function MoistureGauge() {
 ---------------------------------------------------------------------------- */
 const NAV = [
   ["season", "Season"], ["fields", "Fields"], ["themes", "Themes"], ["governance", "Governance"],
-  ["journey", "Journey"], ["voices", "Voices"], ["documented", "Documented"], ["practice", "Practice"],
+  ["journey", "Journey"], ["voices", "Voices"], ["practice", "Practice"],
   ["audited", "Audited"], ["timeline", "Timeline"], ["farmerimpact", "Farmer Impact"],
   ["sourcing", "Sourcing"], ["evidence", "Evidence"], ["about", "About"],
 ];
