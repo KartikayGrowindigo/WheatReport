@@ -1793,12 +1793,7 @@ function WorkflowStepper() {
   const step = (i) => <WFCard n={i + 1} icon={WF_ICONS[i]} title={WORKFLOW_WHEAT[i][0]} sub={WORKFLOW_WHEAT[i][1]} />;
   return (
     <div className="workflow-stepper rounded-lg p-6 md:p-8" style={{ background: "#fff", border: `1px solid ${C.line}` }}>
-      <div className="text-center pb-5" style={{ borderBottom: `2px solid ${C.field}` }}>
-        <div className="wh-display" style={{ fontSize: 16, fontWeight: 800, color: C.ink, letterSpacing: ".01em" }}>
-          CLEAN WHEAT RABI 2025–26 PROGRAM
-        </div>
-      </div>
-      <div className="text-center mt-5">
+      <div className="text-center">
         <div className="wh-data" style={{ fontSize: 13, fontWeight: 700, color: C.field, letterSpacing: 0.6 }}>
           MONITORING, TRACEABILITY &amp; ASSURANCE WORKFLOW
         </div>
@@ -1940,7 +1935,7 @@ const JOURNEY_STEPS = [
   },
   {
     n: "04", title: "Quality test conducted by Nestlé", gallery: [journeyQualityTest1, journeyQualityTest2],
-    body: "Prior to harvest, the Nestlé team collected representative wheat samples directly from programme fields and conducted pre-harvest quality and food-safety testing for pesticide residues, aflatoxins and other specified contaminants to assess compliance with applicable quality requirements.",
+    body: "Prior to harvest, the Nestlé team collected representative wheat samples from programme fields and conducted pre-harvest quality and food-safety testing for pesticide residues, aflatoxins and other specified contaminants to assess compliance with applicable quality requirements.",
   },
   {
     n: "05", title: "Season-long field monitoring", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
@@ -2207,7 +2202,7 @@ const PIPELINE_COLORS = [C.field, C.inkSoft, C.husk];
 const AUDIT_TABLE = [
   ["Data Collection", "Field-level agronomy data was digitally recorded by enrolled farmers via the FieldKhatta/ODK/Farmer diary application at each key intervention event.", "273 wheat farmers participated across Ludhiana and Faridkot districts."],
   ["Independent Audit", "One Peterson conducted on-site field visits to a statistically representative sample of enrolled farms, verifying recorded data against observed practices.", "17 randomly selected farmers were independently audited and verified."],
-  ["GHG Impact Calculation", "Emission reductions were quantified using the Cool Farm Platform v3.0, applying GHG Protocol and IPCC guidelines.", "Results validated for Nestlé sustainability reporting."],
+  ["GHG Impact Calculation", "Emission reductions were quantified using the Cool Farm Platform v3.0, applying GHG Protocol and IPCC guidelines.", "Results shared with Nestlé and OnePeterson."],
 ];
 
 function PipelineSteps() {
