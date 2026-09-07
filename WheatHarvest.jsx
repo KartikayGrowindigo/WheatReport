@@ -1651,7 +1651,7 @@ function OrgChart() {
       <p className="mt-6" style={{ fontSize: 13.5, lineHeight: 1.7, color: C.mute }}>
         Field execution was led by the Regional Business Manager / Agronomist, who oversaw technical implementation and
         agronomic fidelity across the project area, supported by the Territory Business Manager on day-to-day oversight,
-        farmer coordination and operational planning. At ground level, Kisan Advisors worked directly with farmers to
+        farmer coordination and operational planning. At ground level, the field team worked directly with farmers to
         drive adoption, monitor fields and protect the integrity of data collection.
       </p>
     </div>
