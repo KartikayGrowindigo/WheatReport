@@ -1302,9 +1302,7 @@ function SeasonSection() {
             provide an auditable record of programme adoption.
           </p>
           <p>
-            The project reduced GHG emissions by an average of 15% per MT. By integrating Soil Organic Carbon
-            (SOC) sequestration, the project generated an average 101% total net greenhouse gas benefit over
-            the baseline.
+            The project reduced GHG emissions by an average of 15% per MT.
           </p>
         </div>
       </Reveal>
