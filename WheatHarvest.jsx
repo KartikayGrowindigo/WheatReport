@@ -1928,7 +1928,7 @@ const JOURNEY_STEPS = [
   },
   {
     n: "02", title: "Village-Level Meetings", gallery: [journeyVlm1, journeyVlm2, journeyVlm3, journeyVlm4, journeyVlm5, journeyVlm6, journeyVlm7, journeyVlm8, journeyVlm9],
-    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero/Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping and responsible labour practices. Practical demonstrations included Zero Tillage machinery, farmer diaries and Leaf Colour Chart use, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
+    body: "Several Village-Level Meetings (VLMs) were conducted during the programme period to strengthen farmer awareness, technical capacity and adoption of recommended practices under the ClearHarvest Wheat Programme. The sessions covered Zero/Reduced Tillage, crop residue management, balanced fertiliser application, integrated and responsible pest management, avoidance of harmful chemical categories, safe disposal of pesticide containers, efficient water and resource use, farmer record-keeping and responsible labour practices. Practical demonstrations included Zero Tillage machinery and farmer diaries, while field exposure and stakeholder interactions provided farmers with opportunities for hands-on learning, peer exchange and clarification of programme requirements.",
   },
   {
     n: "03", title: "Farmer Diaries", gallery: [journeyFarmerDiary1, journeyFarmerDiary2, journeyFarmerDiary3],
@@ -2401,7 +2401,6 @@ const WHEAT_SEASON_HEADLINE = [
   {
     label: "GHG reduction", value: 15, prefix: "~ ", suffix: "%", tone: C.field, icon: ICON_CO2,
     detail: [
-      ["-364", "kg CO₂e/MT of wheat removed · net sink, on top of the reduction"],
       ["65", "kg CO₂e/MT of wheat cut · 425 → 360, vs. Nestlé baseline"],
     ],
   },
