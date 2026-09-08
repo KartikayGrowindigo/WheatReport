@@ -1939,8 +1939,8 @@ const JOURNEY_STEPS = [
     body: "Prior to harvest, the Nestlé team collected representative wheat samples from programme fields and conducted pre-harvest quality and food-safety testing for pesticide residues, aflatoxins and other specified contaminants to assess compliance with applicable quality requirements.",
   },
   {
-    n: "05", title: "Season-long field monitoring", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
-    body: "Following farmer engagement, field teams continued to record establishment practices, fertiliser use and crop-stage information through the season from the farm to processor.",
+    n: "05", title: "Low-emission procurement", gallery: [journeyLowCarbonWheat, journeyLowCarbonWheat2],
+    body: "Following the successful implementation of programme activities throughout the season, sustainable wheat produced by 273 participating farmers was procured by the millers. In total, 7,261 MT of low-emission wheat was successfully delivered, with end-to-end traceability maintained from the farm through to the processor.",
   },
   {
     n: "06", title: "Independent Third-Party audit", gallery: [journeyThirdPartyAudit, journeyThirdPartyAudit2],
